@@ -12,27 +12,27 @@ class OrganizationModel {
   OrganizationModel();
 
   OrganizationModel.fromJson(Map<String, dynamic> json) {
-    this.id = json["id"] ?? "";
-    this.name = json["name"];
-    this.description = json["description"];
-    this.cep = json["cep"];
-    this.state = json["state"];
-    this.city = json["city"];
-    this.neighborhood = json["neighborhood"];
-    this.street = json["street"];
-    this.number = json["number"];
+    id = json["id"] ?? "";
+    name = json["name"];
+    description = json["description"];
+    cep = json["cep"];
+    state = json["state"];
+    city = json["city"];
+    neighborhood = json["neighborhood"];
+    street = json["street"];
+    number = json["number"];
   }
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> json = new Map<String, dynamic>();
-    json["name"] = this.name;
-    json["description"] = this.description;
-    json["cep"] = this.cep;
-    json["state"] = this.state;
-    json["city"] = this.city;
-    json["neighborhood"] = this.neighborhood;
-    json["street"] = this.street;
-    json["number"] = this.number;
+    Map<String, dynamic> json = <String, dynamic>{};
+    json["name"] = name;
+    json["description"] = description;
+    json["cep"] = cep;
+    json["state"] = state;
+    json["city"] = city;
+    json["neighborhood"] = neighborhood;
+    json["street"] = street;
+    json["number"] = number;
     return json;
   }
 }

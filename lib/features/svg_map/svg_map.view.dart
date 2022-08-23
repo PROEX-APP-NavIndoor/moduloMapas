@@ -1,10 +1,13 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'package:flutter_svg/svg.dart';
 import 'package:mvp_proex/app/app.constant.dart';
+import 'package:mvp_proex/app/app.repository.dart';
 import 'package:mvp_proex/features/person/person.model.dart';
 import 'package:mvp_proex/features/person/person.widget.dart';
 import 'package:mvp_proex/features/point/point.model.dart';
@@ -95,7 +98,6 @@ class _SVGMapState extends State<SVGMap> {
 
   late double scaleFactor;
 
-  // TODO: mudar de flag para flagScale?
   bool flagScale = true;
   bool flagDuration = false;
 
@@ -107,7 +109,6 @@ class _SVGMapState extends State<SVGMap> {
   int prev = 0;
   int id = 0;
   int inicio = 0;
-  // TODO: mudar de points para pointList?
   List<Map<String, dynamic>> pointList = [];
   List<PointModel> newPointList = [];
   Map graph = {};
@@ -122,8 +123,13 @@ class _SVGMapState extends State<SVGMap> {
     });
   }
 
+  List<PointModel> pointListTest = [];
+  PointModel pointGet = PointModel();
+  PointRepository pointsGetAll = PointRepository();
+
   @override
   void initState() {
+    super.initState();
     scaleFactor = widget.svgScale;
     svg = SvgPicture.asset(
       widget.svgPath,
@@ -131,9 +137,17 @@ class _SVGMapState extends State<SVGMap> {
       fit: BoxFit.none,
     );
 
-    var allPoints = PointRepository();
-    allPoints.getAllPoints(
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imx1Y2FzQHVuaWZlaS5iciIsImlhdCI6MTY2MDI1ODg2NywiZXhwIjoxNjYwMzQ1MjY3LCJzdWIiOiIwZjQwYjJlMS01N2YwLTRlMTMtOTQ5ZS1mYWVkOWE1OGMxYWUifQ.mjaONFf16HNGEKvEwCbC93MehwHRVBqEWbhg0PVbQ8M");
+    //b6299d08-b5f1-4cda-8034-a246275c080d
+    pointsGetAll
+        .getAllPoints(
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Inlnb3JAdW5pZmVpLmJyIiwiaWF0IjoxNjYxMjgzNjUzLCJleHAiOjE2NjEzNzAwNTMsInN1YiI6ImM5N2Y1ZmYxLTBjZWYtNDdjOS1iZjBlLWU4YWU4NzdjYTk4ZiJ9.utt9J1TnOUInAEpzHRL9ftOTIOXiV4qg6trd9fZonr8")
+        .then((res) {
+      pointListTest =
+          (jsonDecode(res) as List).map((data) => PointModel.fromJson(data)).toList();
+      print(pointListTest);
+      print(pointListTest[0]);
+      print(pointListTest[0].x);
+    });
 
     PointModel pointVar = PointModel();
     pointVar.id = id;
@@ -159,17 +173,18 @@ class _SVGMapState extends State<SVGMap> {
     graph[0] = {};
     pointList.add(json);
     newPointList.add(pointVar);
-    super.initState();
+    newPointList.add(pointGet);
+    
   }
 
   @override
   Widget build(BuildContext context) {
     final PdfInvoiceService service = PdfInvoiceService();
-    bool isValidX = (newPointList.last.x > ((x ?? 1) - 1) &&
-        newPointList.last.x < ((x ?? 0) + 1));
+    bool isValidX = (pointList.last["x"] > ((x ?? 1) - 1) &&
+        pointList.last["x"] < ((x ?? 0) + 1));
 
-    bool isValidY = (newPointList.last.y > ((y ?? 1)) - 1 &&
-        newPointList.last.y < ((y ?? 0) + 1));
+    bool isValidY = (pointList.last["y"] > ((y ?? 1)) - 1 &&
+        pointList.last["y"] < ((y ?? 0) + 1));
 
     bool isValid = isValidX || isValidY;
 
