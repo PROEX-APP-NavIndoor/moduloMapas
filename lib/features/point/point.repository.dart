@@ -15,8 +15,8 @@ class PointRepository extends AppRepository {
       )
           .then(
         (res) {
-          // print(res.data.toString());
-          // print("Resposta acima");
+          print(res.data.toString());
+          print("Resposta acima");
 
           // print(json.decode(res.data));
           // print("Lista acima");

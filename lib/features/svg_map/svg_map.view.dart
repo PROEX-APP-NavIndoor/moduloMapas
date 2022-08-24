@@ -122,15 +122,21 @@ class _SVGMapState extends State<SVGMap> {
   }
 
   List<PointModel> pointGetAll = [];
-  String testJson = '{"test":1, "name":"a"}';
-  Map<String, dynamic> testeMapa = {};
+  String testJson =
+      '[{"id":"0fc49ba1-f213-4a37-a547-b4b623ccba07","name":"Ponto 1","description":"Teste de integração 4","x": 639,"y": 243,"floor": 1,"breakPoint": true,"neighbor":{"errado":"aqui"},"map_id":"7aae38c8-1ac5-4c52-bd5d-648a8625209d"}]';
+  List<PointModel> testeMapa = [];
+  List<Map<String, dynamic>> jsonPlaceholder = [{}];
 
   @override
   void initState() {
-    testeMapa = json.decode(testJson) as Map<String, dynamic>;
-    print(testeMapa);
-    print(testeMapa["test"]);
-    print(testeMapa["name"]);
+    jsonPlaceholder = (json.decode(testJson) as List<Map<String, dynamic>>);
+    print(jsonPlaceholder[0]["neighbor"]);
+    // for (var cada in jsonPlaceholder) {
+    //   newPointList.add(PointModel.fromJson(cada));
+    // }
+    // print(testeMapa);
+    // print(testeMapa[0]);
+    // print(testeMapa[0].x);
     print(1 + 1);
     scaleFactor = widget.svgScale;
     svg = SvgPicture.asset(
@@ -139,12 +145,12 @@ class _SVGMapState extends State<SVGMap> {
       fit: BoxFit.none,
     );
 
-    var allPoints = PointRepository();
-    allPoints
-        .getAllPoints(
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Inlnb3JAdW5pZmVpLmJyIiwiaWF0IjoxNjYxMzQ3NzU3LCJleHAiOjE2NjE0MzQxNTcsInN1YiI6ImM5N2Y1ZmYxLTBjZWYtNDdjOS1iZjBlLWU4YWU4NzdjYTk4ZiJ9.i2OC5GRlPKbxOi8pSCv-W9yltqTYvCdbK21IdTD380E")
-        .then((res) => {json.decode(res)});
-    print(pointGetAll);
+    // var allPoints = PointRepository();
+    // allPoints
+    //     .getAllPoints(
+    //         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Inlnb3JAdW5pZmVpLmJyIiwiaWF0IjoxNjYxMzQ3NzU3LCJleHAiOjE2NjE0MzQxNTcsInN1YiI6ImM5N2Y1ZmYxLTBjZWYtNDdjOS1iZjBlLWU4YWU4NzdjYTk4ZiJ9.i2OC5GRlPKbxOi8pSCv-W9yltqTYvCdbK21IdTD380E")
+    //     .then((res) => {json.decode(res)});
+    // print(pointGetAll);
     // print(pointGetAll[0]);
     // print(pointGetAll[0].x);
 

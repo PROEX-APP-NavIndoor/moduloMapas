@@ -45,7 +45,7 @@ class PointModel {
         y: json["y"],
         floor: json["floor"],
         breakPoint: json["breakPoint"],
-        neighbor: json["neighbor"],
+        // neighbor: json["neighbor"],
         mapId: json["map_id"],
       );
 
