@@ -1,13 +1,11 @@
-import 'dart:convert';
 import 'dart:io';
+import 'dart:convert';
 
-import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'package:flutter_svg/svg.dart';
 import 'package:mvp_proex/app/app.constant.dart';
-import 'package:mvp_proex/app/app.repository.dart';
 import 'package:mvp_proex/features/person/person.model.dart';
 import 'package:mvp_proex/features/person/person.widget.dart';
 import 'package:mvp_proex/features/point/point.model.dart';
@@ -123,13 +121,17 @@ class _SVGMapState extends State<SVGMap> {
     });
   }
 
-  List<PointModel> pointListTest = [];
-  PointModel pointGet = PointModel();
-  PointRepository pointsGetAll = PointRepository();
+  List<PointModel> pointGetAll = [];
+  String testJson = '{"test":1, "name":"a"}';
+  Map<String, dynamic> testeMapa = {};
 
   @override
   void initState() {
-    super.initState();
+    testeMapa = json.decode(testJson) as Map<String, dynamic>;
+    print(testeMapa);
+    print(testeMapa["test"]);
+    print(testeMapa["name"]);
+    print(1 + 1);
     scaleFactor = widget.svgScale;
     svg = SvgPicture.asset(
       widget.svgPath,
@@ -137,29 +139,26 @@ class _SVGMapState extends State<SVGMap> {
       fit: BoxFit.none,
     );
 
-    //b6299d08-b5f1-4cda-8034-a246275c080d
-    pointsGetAll
+    var allPoints = PointRepository();
+    allPoints
         .getAllPoints(
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Inlnb3JAdW5pZmVpLmJyIiwiaWF0IjoxNjYxMjgzNjUzLCJleHAiOjE2NjEzNzAwNTMsInN1YiI6ImM5N2Y1ZmYxLTBjZWYtNDdjOS1iZjBlLWU4YWU4NzdjYTk4ZiJ9.utt9J1TnOUInAEpzHRL9ftOTIOXiV4qg6trd9fZonr8")
-        .then((res) {
-      pointListTest =
-          (jsonDecode(res) as List).map((data) => PointModel.fromJson(data)).toList();
-      print(pointListTest);
-      print(pointListTest[0]);
-      print(pointListTest[0].x);
-    });
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Inlnb3JAdW5pZmVpLmJyIiwiaWF0IjoxNjYxMzQ3NzU3LCJleHAiOjE2NjE0MzQxNTcsInN1YiI6ImM5N2Y1ZmYxLTBjZWYtNDdjOS1iZjBlLWU4YWU4NzdjYTk4ZiJ9.i2OC5GRlPKbxOi8pSCv-W9yltqTYvCdbK21IdTD380E")
+        .then((res) => {json.decode(res)});
+    print(pointGetAll);
+    // print(pointGetAll[0]);
+    // print(pointGetAll[0].x);
 
     PointModel pointVar = PointModel();
     pointVar.id = id;
     pointVar.x = widget.person.x;
     pointVar.y = widget.person.y;
-    pointVar.neighbor = {};
+    pointVar.neighbor = "";
     pointVar.description =
         "Prédio em que se concentra a maior parte das atividades administrativas da universidade, como matrícula ou trancamento";
     pointVar.type = TypePoint.goal;
     pointVar.name = "Entrada Reitoria";
 
-    Map<String, dynamic> json = {
+    Map<String, dynamic> jsonnn = {
       "id": id++,
       "x": widget.person.x,
       "y": widget.person.y,
@@ -171,10 +170,9 @@ class _SVGMapState extends State<SVGMap> {
     };
 
     graph[0] = {};
-    pointList.add(json);
+    pointList.add(jsonnn);
     newPointList.add(pointVar);
-    newPointList.add(pointGet);
-    
+    super.initState();
   }
 
   @override
