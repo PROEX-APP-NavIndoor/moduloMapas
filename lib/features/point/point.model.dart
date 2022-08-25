@@ -21,9 +21,10 @@ class PointModel {
       this.y = 0.0,
       this.floor = 1,
       this.breakPoint = false,
-      this.neighbor = "",
+      this.neighbor = const {},
       this.mapId = "",
-      this.type = TypePoint.path});
+      this.type = TypePoint.path}
+      );
 
   String uuid;
   int id;
@@ -33,7 +34,7 @@ class PointModel {
   double y;
   int floor;
   bool breakPoint;
-  String neighbor;
+  Map<String, dynamic> neighbor;
   String mapId;
   TypePoint type;
 
@@ -45,7 +46,7 @@ class PointModel {
         y: json["y"],
         floor: json["floor"],
         breakPoint: json["breakPoint"],
-        // neighbor: json["neighbor"],
+        neighbor: json["neighbor"],
         mapId: json["map_id"],
       );
 

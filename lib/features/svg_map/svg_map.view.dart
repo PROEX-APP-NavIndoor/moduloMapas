@@ -123,21 +123,22 @@ class _SVGMapState extends State<SVGMap> {
 
   List<PointModel> pointGetAll = [];
   String testJson =
-      '[{"id":"0fc49ba1-f213-4a37-a547-b4b623ccba07","name":"Ponto 1","description":"Teste de integração 4","x": 639,"y": 243,"floor": 1,"breakPoint": true,"neighbor":{"errado":"aqui"},"map_id":"7aae38c8-1ac5-4c52-bd5d-648a8625209d"}]';
+      '[{"id":"0fc49ba1-f213-4a37-a547-b4b623ccba07","name":"Ponto 1","description":"Teste de integração 4","x": 639.0,"y": 243.0,"floor": 1,"breakPoint": true,"neighbor":{"errado":"aqui"},"map_id":"7aae38c8-1ac5-4c52-bd5d-648a8625209d"}]';
   List<PointModel> testeMapa = [];
-  List<Map<String, dynamic>> jsonPlaceholder = [{}];
+  List jsonPlaceholder = [];
 
   @override
   void initState() {
-    jsonPlaceholder = (json.decode(testJson) as List<Map<String, dynamic>>);
+    jsonPlaceholder = (json.decode(testJson) as List);
     print(jsonPlaceholder[0]["neighbor"]);
-    // for (var cada in jsonPlaceholder) {
-    //   newPointList.add(PointModel.fromJson(cada));
-    // }
+    for (var cada in jsonPlaceholder) {
+      newPointList.add(PointModel.fromJson(cada));
+    }
     // print(testeMapa);
     // print(testeMapa[0]);
     // print(testeMapa[0].x);
-    print(1 + 1);
+    // print(testeMapa[0].neighbor);
+    // print(1 + 1);
     scaleFactor = widget.svgScale;
     svg = SvgPicture.asset(
       widget.svgPath,
@@ -145,20 +146,27 @@ class _SVGMapState extends State<SVGMap> {
       fit: BoxFit.none,
     );
 
-    // var allPoints = PointRepository();
-    // allPoints
-    //     .getAllPoints(
-    //         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Inlnb3JAdW5pZmVpLmJyIiwiaWF0IjoxNjYxMzQ3NzU3LCJleHAiOjE2NjE0MzQxNTcsInN1YiI6ImM5N2Y1ZmYxLTBjZWYtNDdjOS1iZjBlLWU4YWU4NzdjYTk4ZiJ9.i2OC5GRlPKbxOi8pSCv-W9yltqTYvCdbK21IdTD380E")
-    //     .then((res) => {json.decode(res)});
-    // print(pointGetAll);
-    // print(pointGetAll[0]);
-    // print(pointGetAll[0].x);
+    var allPoints = PointRepository();
+    allPoints
+        .getAllPoints(
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Inlnb3JAdW5pZmVpLmJyIiwiaWF0IjoxNjYxNDYxNjAwLCJleHAiOjE2NjE1NDgwMDAsInN1YiI6ImM5N2Y1ZmYxLTBjZWYtNDdjOS1iZjBlLWU4YWU4NzdjYTk4ZiJ9.4NuK3UVe04-9qg-Rn23KNPEVQCxM6gbtGLkfC_qcU8Q")
+        .then((res) => {
+          jsonPlaceholder = json.decode(res) as List
+          });
+    for (var cada in jsonPlaceholder) {
+      testeMapa.add(PointModel.fromJson(cada));
+    }
+    print(testeMapa);
+    print(testeMapa[0]);
+    print(testeMapa[0].x);
+    print(testeMapa[0].neighbor);
+    print(1 + 1);
 
     PointModel pointVar = PointModel();
     pointVar.id = id;
     pointVar.x = widget.person.x;
     pointVar.y = widget.person.y;
-    pointVar.neighbor = "";
+    pointVar.neighbor = {};
     pointVar.description =
         "Prédio em que se concentra a maior parte das atividades administrativas da universidade, como matrícula ou trancamento";
     pointVar.type = TypePoint.goal;

@@ -101,7 +101,7 @@ Future dialogPointWidget(
                 point.type = type;
                 point.name = name;
                 // point.neighbor = {"qq string": "qq string"};
-                point.neighbor = "";
+                point.neighbor = {};
                 Map<String, dynamic> json = {
                   "id": id,
                   "x": details.localPosition.dx,
