@@ -1,5 +1,7 @@
 import 'dart:typed_data';
 import 'dart:io';
+import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart' as material;
 import 'package:mvp_proex/features/point/point.model.dart';
 import 'package:open_document/open_document.dart';
 import 'package:path_provider/path_provider.dart';
@@ -17,13 +19,21 @@ class CustomRow {
 class PdfInvoiceService {
   Future<Uint8List> createPDF(List<PointModel> points) {
     final pdf = pw.Document();
-    for (PointModel point in points) {
-      pdf.addPage(pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        build: (pw.Context context) {
-          return pw.Center(
-              child: pw.Container(
-            padding: const pw.EdgeInsets.all(20),
+    pdf.addPage(pw.MultiPage(
+      margin: const pw.EdgeInsets.all(50),
+      //mainAxisAlignment: pw.MainAxisAlignment.center,
+      crossAxisAlignment: pw.CrossAxisAlignment.center,
+      pageFormat: PdfPageFormat.a4,
+      orientation: pw.PageOrientation.portrait,
+      build: (pw.Context context) {
+        List<pw.Widget> listaWidget = <pw.Widget>[];
+        for (PointModel point in points) {
+          listaWidget.add(pw.Container(
+            height: 370,
+            width: 300,
+            decoration: pw.BoxDecoration(
+                border: pw.Border.all(style: pw.BorderStyle.dashed)),
+            padding: const pw.EdgeInsets.all(40),
             child: pw.Column(
                 mainAxisSize: pw.MainAxisSize.min,
                 mainAxisAlignment: pw.MainAxisAlignment.center,
@@ -48,9 +58,11 @@ class PdfInvoiceService {
                   ),
                 ]),
           ));
-        },
-      ));
-    }
+        }
+        return listaWidget;
+      },
+    ));
+    //}
     return pdf.save();
   }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mvp_proex/app/app.constant.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mvp_proex/features/point/point.model.dart';
@@ -45,6 +46,8 @@ Future dialogPointWidget(
               },
             ),
             TextFormField(
+              maxLengthEnforcement: MaxLengthEnforcement.enforced,
+              maxLength: 100,
               initialValue: name,
               decoration: const InputDecoration(
                 labelText: "Nome do ponto",
@@ -59,6 +62,8 @@ Future dialogPointWidget(
             ),
             TextFormField(
               initialValue: descricao,
+              maxLengthEnforcement: MaxLengthEnforcement.enforced,
+              maxLength: 200,
               decoration: const InputDecoration(
                 labelText: "Descrição do ponto",
               ),
