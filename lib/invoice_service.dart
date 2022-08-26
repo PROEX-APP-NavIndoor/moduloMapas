@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'dart:io';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart' as material;
 import 'package:mvp_proex/features/point/point.model.dart';
@@ -19,49 +20,66 @@ class CustomRow {
 class PdfInvoiceService {
   Future<Uint8List> createPDF(List<PointModel> points) {
     final pdf = pw.Document();
-    pdf.addPage(pw.MultiPage(
-      margin: const pw.EdgeInsets.all(50),
-      //mainAxisAlignment: pw.MainAxisAlignment.center,
-      crossAxisAlignment: pw.CrossAxisAlignment.center,
-      pageFormat: PdfPageFormat.a4,
-      orientation: pw.PageOrientation.portrait,
-      build: (pw.Context context) {
-        List<pw.Widget> listaWidget = <pw.Widget>[];
-        for (PointModel point in points) {
-          listaWidget.add(pw.Container(
-            height: 370,
-            width: 300,
-            decoration: pw.BoxDecoration(
-                border: pw.Border.all(style: pw.BorderStyle.dashed)),
-            padding: const pw.EdgeInsets.all(40),
-            child: pw.Column(
-                mainAxisSize: pw.MainAxisSize.min,
-                mainAxisAlignment: pw.MainAxisAlignment.center,
-                children: [
-                  pw.Text(
-                    point.name,
-                    style: const pw.TextStyle(fontSize: 20),
-                  ),
-                  pw.SizedBox(height: 10),
-                  pw.BarcodeWidget(
-                    data: point.id.toString(),
-                    barcode: pw.Barcode.qrCode(
-                        typeNumber: 2,
-                        errorCorrectLevel: pw.BarcodeQRCorrectionLevel.high),
-                    width: 150,
-                    height: 150,
-                  ),
-                  pw.SizedBox(height: 10),
-                  pw.Text(
-                    point.description,
-                    textAlign: pw.TextAlign.center,
-                  ),
-                ]),
-          ));
-        }
-        return listaWidget;
-      },
-    ));
+    final image = pw.MemoryImage(
+      File('assets/images/logo.png').readAsBytesSync(),
+    );
+    for (PointModel point in points) {
+      pdf.addPage(pw.Page(
+          margin: const pw.EdgeInsets.all(50),
+          //mainAxisAlignment: pw.MainAxisAlignment.center,
+          //crossAxisAlignment: pw.CrossAxisAlignment.center,
+          pageFormat: PdfPageFormat.a4,
+          orientation: pw.PageOrientation.portrait,
+          build: (pw.Context context) {
+            return pw.Container(
+              height: 370 * 2,
+              width: 300 * 2,
+              decoration: pw.BoxDecoration(
+                  border: pw.Border.all(
+                      style: pw.BorderStyle.solid, color: PdfColors.blue)),
+              padding: const pw.EdgeInsets.all(40),
+              child: pw.Column(
+                  mainAxisSize: pw.MainAxisSize.min,
+                  mainAxisAlignment: pw.MainAxisAlignment.start,
+                  children: [
+                    pw.Image(
+                      image,
+                      height: 125,
+                      width: 125,
+                    ),
+                    pw.Text(
+                      point.name,
+                      style: pw.TextStyle(
+                        decoration: pw.TextDecoration.underline,
+                        decorationColor: PdfColors.blue,
+                        decorationStyle: pw.TextDecorationStyle.solid,
+                        fontWeight: pw.FontWeight.bold,
+                        fontSize: 30,
+                        color: PdfColors.blue800,
+                      ),
+                    ),
+                    pw.SizedBox(height: 20),
+                    pw.BarcodeWidget(
+                      data: point.id.toString(),
+                      barcode: pw.Barcode.qrCode(
+                          typeNumber: 2,
+                          errorCorrectLevel: pw.BarcodeQRCorrectionLevel.high),
+                      width: 300,
+                      height: 300,
+                    ),
+                    pw.SizedBox(height: 10),
+                    pw.Text(
+                      point.description,
+                      style: const pw.TextStyle(
+                        fontSize: 18,
+                        color: PdfColors.blue800,
+                      ),
+                      textAlign: pw.TextAlign.center,
+                    ),
+                  ]),
+            );
+          }));
+    }
     //}
     return pdf.save();
   }
