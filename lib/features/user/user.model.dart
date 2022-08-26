@@ -15,20 +15,20 @@ class UserModel {
       this.token = ""});
 
   UserModel.fromJson(Map<String, dynamic> json) {
-    this.name = json["name"].toString();
-    this.email = json["email"].toString();
-    this.password = json["password"].toString();
-    this.permission = json["permission"].toString();
-    this.id = json["id"] ?? '';
-    this.token = json["token"] ?? '';
+    name = json["name"].toString();
+    email = json["email"].toString();
+    password = json["password"].toString();
+    permission = json["permission"].toString();
+    id = json["id"] ?? '';
+    token = json["token"] ?? '';
   }
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> json = new Map<String, dynamic>();
-    json["name"] = this.name;
-    json["email"] = this.email;
-    json["password"] = this.password;
-    json["role"] = this.permission;
+    Map<String, dynamic> json = <String, dynamic>{};
+    json["name"] = name;
+    json["email"] = email;
+    json["password"] = password;
+    json["role"] = permission;
     return json;
   }
 }

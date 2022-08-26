@@ -2,8 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:mvp_proex/app/app.repository.dart';
 
 class LoginRepository extends AppRepository {
-  // @override
-  // final Dio dio = Dio();
+  final Dio dio = Dio();
 
   Future<String> postToken(
       {required dynamic model, required String query}) async {
