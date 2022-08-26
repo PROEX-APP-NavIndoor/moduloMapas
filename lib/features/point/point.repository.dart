@@ -11,16 +11,13 @@ class PointRepository extends AppRepository {
       return await dio
           .get(
         AppRepository.path + AppRepository.queryPoints,
-        options: Options(headers: {'Authorization': "Bearer $token"}),
+        options: Options(headers: {"Authorization": "Bearer $token"}, responseType: ResponseType.plain),
       )
           .then(
         (res) {
-          print(res.data.toString());
-          print("Resposta acima");
-
-          // print(json.decode(res.data));
-          // print("Lista acima");
-          json.decode(res.data);
+          // print(res);
+          // print(res.toString());
+          // print("Resposta acima");
           return res.toString();
         },
       );

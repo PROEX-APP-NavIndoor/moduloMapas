@@ -134,13 +134,13 @@ class _SVGMapState extends State<SVGMap> {
     PointRepository allPoints = PointRepository();
     allPoints
         .getAllPoints(
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Inlnb3JAdW5pZmVpLmJyIiwiaWF0IjoxNjYxNDYxNjAwLCJleHAiOjE2NjE1NDgwMDAsInN1YiI6ImM5N2Y1ZmYxLTBjZWYtNDdjOS1iZjBlLWU4YWU4NzdjYTk4ZiJ9.4NuK3UVe04-9qg-Rn23KNPEVQCxM6gbtGLkfC_qcU8Q")
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Inlnb3JAdW5pZmVpLmJyIiwiaWF0IjoxNjYxNTI0MDExLCJleHAiOjE2NjE2MTA0MTEsInN1YiI6ImM5N2Y1ZmYxLTBjZWYtNDdjOS1iZjBlLWU4YWU4NzdjYTk4ZiJ9.XOPb5TGmFZvnBiONNpgZaAPz_Mw_V5h7PDCpuii3rV4")
         .then((res) => {
-          jsonPlaceholder = json.decode(res) as List
-          });
-    for (var cada in jsonPlaceholder) {
-      newPointList.add(PointModel.fromJson(cada));
-    }
+              jsonPlaceholder = (json.decode(res) as List),
+              for (var cada in jsonPlaceholder) {
+                newPointList.add(PointModel.fromJson(cada)),
+              },
+            });
 
     PointModel pointVar = PointModel();
     pointVar.id = id;
@@ -187,127 +187,126 @@ class _SVGMapState extends State<SVGMap> {
       left = (widget.person.x - MediaQuery.of(context).size.width / 2) * -1;
     }
     return Scaffold(
-      appBar: CustomAppBar(
-        height: 100,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Icon(
-                  Icons.home_work,
-                  size: 30,
-                  color: Colors.white,
-                ),
-                SizedBox(
-                  width: 20,
-                ),
-                Text(
-                  "Entrada Reitoria",
-                  style: TextStyle(
-                    fontSize: 18,
+        appBar: CustomAppBar(
+          height: 100,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Icon(
+                    Icons.home_work,
+                    size: 30,
                     color: Colors.white,
                   ),
-                ),
-              ],
-            ),
-            //Caso queira navegar para outra página
-            Positioned(
-              top: -10,
-              left: 0,
-              child: IconButton(
-                icon: const Icon(
-                  Icons.qr_code_outlined,
-                  size: 35,
-                  color: Colors.white,
-                ),
-                onPressed: () async {
-                  final data = await service.createPDF(newPointList);
-                  service.savePdfFile("QR_Todos", data);
-                },
+                  SizedBox(
+                    width: 20,
+                  ),
+                  Text(
+                    "Entrada Reitoria",
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
-      ),
-      body: Transform.rotate(
-        angle: math.pi / 0.5,
-        child: Transform.scale(
-          scale: scaleFactor,
-          child: Stack(
-            children: [
-              AnimatedPositioned(
-                duration: flagDuration
-                    ? const Duration(milliseconds: 500)
-                    : const Duration(milliseconds: 0),
-                top: top,
-                left: left,
-                child: MouseRegion(
-                  onHover: (event) {
-                    if (isAdmin) {
-                      setState(() {
-                        x = event.localPosition.dx;
-                        y = event.localPosition.dy;
-                      });
-                    }
+              Positioned(
+                top: -10,
+                left: 0,
+                child: IconButton(
+                  icon: const Icon(
+                    Icons.qr_code_outlined,
+                    size: 35,
+                    color: Colors.white,
+                  ),
+                  onPressed: () async {
+                    final data = await service.createPDF(newPointList);
+                    service.savePdfFile("QR_Todos", data);
                   },
-                  child: GestureDetector(
-                    onDoubleTap: () {
-                      setState(
-                        () {
-                          if (flagScale) {
-                            scaleFactor *= 2;
-                            flagScale = false;
-                          } else {
-                            scaleFactor *= 1 / 2;
-                            flagScale = true;
-                          }
-                        },
-                      );
-                    },
-                    onPanUpdate: (details) {
-                      setState(
-                        () {
-                          flagDuration = false;
-                          top = top! + details.delta.dy;
-                          left = left! + details.delta.dx;
-                        },
-                      );
-                    },
-                    onLongPressEnd: (details) {
-                      setState(
-                        () {
-                          objetivoX = details.localPosition.dx;
-                          objetivoY = details.localPosition.dy;
-
-                          widget.person.setx = objetivoX;
-                          widget.person.sety = objetivoY;
-                        },
-                      );
-                    },
-                    // TODO: mudar para TapDown?
-                    onTapDown: (details) {
-                      if (isAdmin && isValid) {
-                        dialogPointWidget(
-                                context, details, id, newPointList, graph)
-                            .whenComplete(
-                          () => setState(
-                            () {
-                              id++;
-                              prev++;
-                            },
-                          ),
-                        );
+                ),
+              ),
+            ],
+          ),
+        ),
+        body: Transform.rotate(
+          angle: math.pi / 0.5,
+          child: Transform.scale(
+            scale: scaleFactor,
+            child: Stack(
+              children: [
+                AnimatedPositioned(
+                  duration: flagDuration
+                      ? const Duration(milliseconds: 500)
+                      : const Duration(milliseconds: 0),
+                  top: top,
+                  left: left,
+                  child: MouseRegion(
+                    onHover: (event) {
+                      if (isAdmin) {
+                        setState(() {
+                          x = event.localPosition.dx;
+                          y = event.localPosition.dy;
+                        });
                       }
                     },
-                    child: Container(
-                      margin: EdgeInsets.zero,
-                      padding: EdgeInsets.zero,
-                      child: Stack(
-                        children: [
-                          svg,
-                          if (isAdmin)
+                    child: GestureDetector(
+                      onDoubleTap: () {
+                        setState(
+                          () {
+                            if (flagScale) {
+                              scaleFactor *= 2;
+                              flagScale = false;
+                            } else {
+                              scaleFactor *= 1 / 2;
+                              flagScale = true;
+                            }
+                          },
+                        );
+                      },
+                      onPanUpdate: (details) {
+                        setState(
+                          () {
+                            flagDuration = false;
+                            top = top! + details.delta.dy;
+                            left = left! + details.delta.dx;
+                          },
+                        );
+                      },
+                      onLongPressEnd: (details) {
+                        setState(
+                          () {
+                            objetivoX = details.localPosition.dx;
+                            objetivoY = details.localPosition.dy;
+
+                            widget.person.setx = objetivoX;
+                            widget.person.sety = objetivoY;
+                          },
+                        );
+                      },
+                      onTapDown: (details) {
+                        if (isAdmin && isValid) {
+                          dialogPointWidget(
+                                  context, details, id, newPointList, graph)
+                              .whenComplete(
+                            () => setState(
+                              () {
+                                id++;
+                                prev++;
+                              },
+                            ),
+                          );
+                        }
+                      },
+                      child: Container(
+                        margin: EdgeInsets.zero,
+                        padding: EdgeInsets.zero,
+                        child: Stack(
+                          children: [
+                            svg,
+                            // não precisa ser admin para ver os pontos
+                            // if (isAdmin)
                             ...newPointList
                                 .map<Widget>(
                                   (e) => PointWidget(
@@ -316,7 +315,6 @@ class _SVGMapState extends State<SVGMap> {
                                     onPressed: () {
                                       if (isAdmin) {
                                         //somente desktop
-
                                         dialogEditPoint(
                                             context,
                                             e,
@@ -332,175 +330,175 @@ class _SVGMapState extends State<SVGMap> {
                                   ),
                                 )
                                 .toList(),
-                          PersonWidget(
-                            person: widget.person,
-                          ),
-                          if (isAdmin && isLine)
-                            ...pointValidWidget(
-                              x: x ?? 0,
-                              y: y ?? 0,
-                              width: widget.svgWidth,
-                              height: widget.svgHeight,
-                              lastPoint: pointList.last,
-                              isValidX: isValidX,
-                              isValidY: isValidY,
+                            PersonWidget(
+                              person: widget.person,
                             ),
-                        ],
+                            if (isAdmin && isLine)
+                              ...pointValidWidget(
+                                x: x ?? 0,
+                                y: y ?? 0,
+                                width: widget.svgWidth,
+                                height: widget.svgHeight,
+                                lastPoint: pointList.last,
+                                isValidX: isValidX,
+                                isValidY: isValidY,
+                              ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-      ),
-      floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          isAdmin
-              ? FloatingActionButton(
-                  heroTag: "btnLine",
-                  onPressed: () {
-                    setState(
-                      () {
-                        isLine = !isLine;
-                      },
-                    );
-                  },
-                  child: const Icon(
-                    Icons.line_style,
-                    size: 30,
-                  ),
-                )
-              : Container(),
-          isAdmin
-              ? const SizedBox(
-                  height: 20,
-                )
-              : Container(),
-          (kIsWeb || Platform.isLinux || Platform.isMacOS || Platform.isWindows)
-              ? FloatingActionButton(
-                  heroTag: "btnAdmin",
-                  backgroundColor: Colors.red[900],
-                  onPressed: () {
-                    setState(
-                      () {
-                        isAdmin = !isAdmin;
-                        // criar scaffold message
-                        ScaffoldMessenger.of(context).removeCurrentSnackBar();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              isAdmin
-                                  ? 'Modo Admin Ativado'
-                                  : 'Modo Admin Desativado',
-                              textAlign: TextAlign.center,
+        floatingActionButton: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            isAdmin
+                ? FloatingActionButton(
+                    heroTag: "btnLine",
+                    onPressed: () {
+                      setState(
+                        () {
+                          isLine = !isLine;
+                        },
+                      );
+                    },
+                    child: const Icon(
+                      Icons.line_style,
+                      size: 30,
+                    ),
+                  )
+                : Container(),
+            isAdmin
+                ? const SizedBox(
+                    height: 20,
+                  )
+                : Container(),
+            (kIsWeb || Platform.isLinux || Platform.isMacOS || Platform.isWindows)
+                ? FloatingActionButton(
+                    heroTag: "btnAdmin",
+                    backgroundColor: Colors.red[900],
+                    onPressed: () {
+                      setState(
+                        () {
+                          isAdmin = !isAdmin;
+                          // criar scaffold message
+                          ScaffoldMessenger.of(context).removeCurrentSnackBar();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                isAdmin
+                                    ? 'Modo Admin Ativado'
+                                    : 'Modo Admin Desativado',
+                                textAlign: TextAlign.center,
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    );
+                          );
+                        },
+                      );
+                    },
+                    child: const Icon(
+                      Icons.admin_panel_settings,
+                      size: 30,
+                    ),
+                  )
+                : Container(),
+            const SizedBox(
+              height: 20,
+            ),
+            FloatingActionButton(
+              heroTag: "btnScale",
+              onPressed: () {
+                setState(
+                  () {
+                    if (flagScale) {
+                      scaleFactor *= 2;
+                      flagScale = false;
+                    } else {
+                      scaleFactor *= 1 / 2;
+                      flagScale = true;
+                    }
                   },
-                  child: const Icon(
-                    Icons.admin_panel_settings,
-                    size: 30,
-                  ),
-                )
-              : Container(),
-          const SizedBox(
-            height: 20,
-          ),
-          FloatingActionButton(
-            heroTag: "btnScale",
-            onPressed: () {
-              setState(
-                () {
-                  if (flagScale) {
-                    scaleFactor *= 2;
-                    flagScale = false;
-                  } else {
-                    scaleFactor *= 1 / 2;
-                    flagScale = true;
-                  }
-                },
-              );
-            },
-            child: Icon(
-              flagScale ? Icons.zoom_in_sharp : Icons.zoom_out_map,
-              size: 30,
+                );
+              },
+              child: Icon(
+                flagScale ? Icons.zoom_in_sharp : Icons.zoom_out_map,
+                size: 30,
+              ),
             ),
-          ),
-          const SizedBox(
-            height: 20,
-          ),
-          FloatingActionButton(
-            heroTag: "btnCentralizar",
-            onPressed: () {
-              centralizar(true);
-            },
-            child: const Icon(
-              Icons.center_focus_strong,
-              size: 30,
+            const SizedBox(
+              height: 20,
             ),
-          ),
-        ],
-      ),
-      ///// Não ficará visível para o administrador
-      // bottomNavigationBar: Container(
-      //   padding: const EdgeInsets.symmetric(
-      //     vertical: 10,
-      //     horizontal: 20,
-      //   ),
-      //   margin: const EdgeInsets.all(16),
-      //   height: 80,
-      //   width: 100,
-      //   decoration: const BoxDecoration(
-      //     borderRadius: BorderRadius.all(Radius.circular(25)),
-      //     color: Colors.deepOrange,
-      //   ),
-      //   child: Row(
-      //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      //     children: [
-      //       const Icon(
-      //         Icons.arrow_upward_outlined,
-      //         size: 40,
-      //         color: Colors.white,
-      //       ),
-      //       Column(
-      //         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      //         children: const [
-      //           Icon(
-      //             Icons.social_distance,
-      //             color: Colors.white,
-      //           ),
-      //           Text("2 Km"),
-      //         ],
-      //       ),
-      //       Column(
-      //         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      //         children: const [
-      //           Icon(
-      //             Icons.timelapse,
-      //             color: Colors.white,
-      //           ),
-      //           Text("1 min"),
-      //         ],
-      //       ),
-      //       Column(
-      //         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      //         children: const [
-      //           Icon(
-      //             Icons.timer,
-      //             color: Colors.white,
-      //           ),
-      //           Text("10:56"),
-      //         ],
-      //       ),
-      //     ],
-      //   ),
-      // ),
-    );
+            FloatingActionButton(
+              heroTag: "btnCentralizar",
+              onPressed: () {
+                centralizar(true);
+              },
+              child: const Icon(
+                Icons.center_focus_strong,
+                size: 30,
+              ),
+            ),
+          ],
+        ),
+        ///// Não ficará visível para o administrador
+        // bottomNavigationBar: Container(
+        //   padding: const EdgeInsets.symmetric(
+        //     vertical: 10,
+        //     horizontal: 20,
+        //   ),
+        //   margin: const EdgeInsets.all(16),
+        //   height: 80,
+        //   width: 100,
+        //   decoration: const BoxDecoration(
+        //     borderRadius: BorderRadius.all(Radius.circular(25)),
+        //     color: Colors.deepOrange,
+        //   ),
+        //   child: Row(
+        //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        //     children: [
+        //       const Icon(
+        //         Icons.arrow_upward_outlined,
+        //         size: 40,
+        //         color: Colors.white,
+        //       ),
+        //       Column(
+        //         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        //         children: const [
+        //           Icon(
+        //             Icons.social_distance,
+        //             color: Colors.white,
+        //           ),
+        //           Text("2 Km"),
+        //         ],
+        //       ),
+        //       Column(
+        //         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        //         children: const [
+        //           Icon(
+        //             Icons.timelapse,
+        //             color: Colors.white,
+        //           ),
+        //           Text("1 min"),
+        //         ],
+        //       ),
+        //       Column(
+        //         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        //         children: const [
+        //           Icon(
+        //             Icons.timer,
+        //             color: Colors.white,
+        //           ),
+        //           Text("10:56"),
+        //         ],
+        //       ),
+        //     ],
+        //   ),
+        // ),
+        );
   }
 }
