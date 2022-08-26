@@ -108,6 +108,7 @@ class _SVGMapState extends State<SVGMap> {
   int id = 0;
   int inicio = 0;
   List<Map<String, dynamic>> pointList = [];
+  List jsonPlaceholder = [];
   List<PointModel> newPointList = [];
   Map graph = {};
 
@@ -121,24 +122,8 @@ class _SVGMapState extends State<SVGMap> {
     });
   }
 
-  List<PointModel> pointGetAll = [];
-  String testJson =
-      '[{"id":"0fc49ba1-f213-4a37-a547-b4b623ccba07","name":"Ponto 1","description":"Teste de integração 4","x": 639.0,"y": 243.0,"floor": 1,"breakPoint": true,"neighbor":{"errado":"aqui"},"map_id":"7aae38c8-1ac5-4c52-bd5d-648a8625209d"}]';
-  List<PointModel> testeMapa = [];
-  List jsonPlaceholder = [];
-
   @override
   void initState() {
-    jsonPlaceholder = (json.decode(testJson) as List);
-    print(jsonPlaceholder[0]["neighbor"]);
-    for (var cada in jsonPlaceholder) {
-      newPointList.add(PointModel.fromJson(cada));
-    }
-    // print(testeMapa);
-    // print(testeMapa[0]);
-    // print(testeMapa[0].x);
-    // print(testeMapa[0].neighbor);
-    // print(1 + 1);
     scaleFactor = widget.svgScale;
     svg = SvgPicture.asset(
       widget.svgPath,
@@ -146,7 +131,7 @@ class _SVGMapState extends State<SVGMap> {
       fit: BoxFit.none,
     );
 
-    var allPoints = PointRepository();
+    PointRepository allPoints = PointRepository();
     allPoints
         .getAllPoints(
             "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Inlnb3JAdW5pZmVpLmJyIiwiaWF0IjoxNjYxNDYxNjAwLCJleHAiOjE2NjE1NDgwMDAsInN1YiI6ImM5N2Y1ZmYxLTBjZWYtNDdjOS1iZjBlLWU4YWU4NzdjYTk4ZiJ9.4NuK3UVe04-9qg-Rn23KNPEVQCxM6gbtGLkfC_qcU8Q")
@@ -154,13 +139,8 @@ class _SVGMapState extends State<SVGMap> {
           jsonPlaceholder = json.decode(res) as List
           });
     for (var cada in jsonPlaceholder) {
-      testeMapa.add(PointModel.fromJson(cada));
+      newPointList.add(PointModel.fromJson(cada));
     }
-    print(testeMapa);
-    print(testeMapa[0]);
-    print(testeMapa[0].x);
-    print(testeMapa[0].neighbor);
-    print(1 + 1);
 
     PointModel pointVar = PointModel();
     pointVar.id = id;
