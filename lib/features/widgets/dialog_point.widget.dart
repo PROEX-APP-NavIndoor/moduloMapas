@@ -47,7 +47,7 @@ Future dialogPointWidget(
             ),
             TextFormField(
               maxLengthEnforcement: MaxLengthEnforcement.enforced,
-              maxLength: 100,
+              maxLength: 80,
               initialValue: name,
               decoration: const InputDecoration(
                 labelText: "Nome do ponto",
@@ -63,7 +63,7 @@ Future dialogPointWidget(
             TextFormField(
               initialValue: descricao,
               maxLengthEnforcement: MaxLengthEnforcement.enforced,
-              maxLength: 200,
+              maxLength: 250,
               decoration: const InputDecoration(
                 labelText: "Descrição do ponto",
               ),

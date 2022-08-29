@@ -35,13 +35,18 @@ class PdfInvoiceService {
               height: 370 * 2,
               width: 300 * 2,
               decoration: pw.BoxDecoration(
-                  border: pw.Border.all(
-                      style: pw.BorderStyle.solid, color: PdfColors.blue)),
+                  border: pw.Border.all(style: pw.BorderStyle.solid)),
               padding: const pw.EdgeInsets.all(40),
               child: pw.Column(
                   mainAxisSize: pw.MainAxisSize.min,
                   mainAxisAlignment: pw.MainAxisAlignment.start,
                   children: [
+                    pw.Text("MarleyApp",
+                        style: pw.TextStyle(
+                            //decoration: pw.TextDecoration.underline,
+                            //decorationStyle: pw.TextDecorationStyle.solid,
+                            fontWeight: pw.FontWeight.bold,
+                            fontSize: 25)),
                     pw.Image(
                       image,
                       height: 125,
@@ -50,13 +55,10 @@ class PdfInvoiceService {
                     pw.Text(
                       point.name,
                       style: pw.TextStyle(
-                        decoration: pw.TextDecoration.underline,
-                        decorationColor: PdfColors.blue,
-                        decorationStyle: pw.TextDecorationStyle.solid,
-                        fontWeight: pw.FontWeight.bold,
-                        fontSize: 30,
-                        color: PdfColors.blue800,
-                      ),
+                          decoration: pw.TextDecoration.underline,
+                          decorationStyle: pw.TextDecorationStyle.solid,
+                          fontWeight: pw.FontWeight.bold,
+                          fontSize: 25),
                     ),
                     pw.SizedBox(height: 20),
                     pw.BarcodeWidget(
@@ -72,7 +74,6 @@ class PdfInvoiceService {
                       point.description,
                       style: const pw.TextStyle(
                         fontSize: 18,
-                        color: PdfColors.blue800,
                       ),
                       textAlign: pw.TextAlign.center,
                     ),

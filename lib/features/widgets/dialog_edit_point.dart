@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:dijkstra/dijkstra.dart';
+import 'package:mvp_proex/features/widgets/dialog_point.widget.dart';
 import 'package:mvp_proex/features/widgets/dialog_qrcode.widget.dart';
 import 'package:mvp_proex/features/point/point.model.dart';
+
+import 'dialog_editar.dart';
 
 Future dialogEditPoint(
     BuildContext context,
@@ -43,6 +46,15 @@ Future dialogEditPoint(
             },
             child: const Text(
               "Remover",
+              style: TextStyle(color: Colors.redAccent),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              dialogEditar(context, e);
+            },
+            child: const Text(
+              "Editar Ponto",
               style: TextStyle(color: Colors.redAccent),
             ),
           ),
@@ -91,10 +103,10 @@ Future dialogEditPoint(
               tracker.removeAt(0);
 
               for (var i = 0; i < tracker.length; i++) {
-                widget.person.setx = points
-                    .firstWhere((element) => element.id == tracker[i]).x;
-                widget.person.sety = points
-                    .firstWhere((element) => element.id == tracker[i]).y;
+                widget.person.setx =
+                    points.firstWhere((element) => element.id == tracker[i]).x;
+                widget.person.sety =
+                    points.firstWhere((element) => element.id == tracker[i]).y;
                 inicio = tracker[i];
                 await Future.delayed(const Duration(seconds: 3));
                 centralizar(true);
