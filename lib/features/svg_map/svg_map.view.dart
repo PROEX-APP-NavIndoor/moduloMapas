@@ -107,8 +107,6 @@ class _SVGMapState extends State<SVGMap> {
   int prev = 0;
   int id = 0;
   int inicio = 0;
-  List<Map<String, dynamic>> pointList = [];
-  List jsonPlaceholder = [];
   List<PointModel> newPointList = [];
   Map graph = {};
 
@@ -132,6 +130,7 @@ class _SVGMapState extends State<SVGMap> {
     );
 
     PointRepository allPoints = PointRepository();
+    List jsonPlaceholder = [];
     allPoints
         .getAllPoints(
             "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Inlnb3JAdW5pZmVpLmJyIiwiaWF0IjoxNjYxNTI0MDExLCJleHAiOjE2NjE2MTA0MTEsInN1YiI6ImM5N2Y1ZmYxLTBjZWYtNDdjOS1iZjBlLWU4YWU4NzdjYTk4ZiJ9.XOPb5TGmFZvnBiONNpgZaAPz_Mw_V5h7PDCpuii3rV4")
@@ -152,19 +151,7 @@ class _SVGMapState extends State<SVGMap> {
     pointVar.type = TypePoint.goal;
     pointVar.name = "Entrada Reitoria";
 
-    Map<String, dynamic> jsonnn = {
-      "id": id++,
-      "x": widget.person.x,
-      "y": widget.person.y,
-      "vizinhos": {},
-      "descricao":
-          "Prédio em que se concentra a maior parte das atividades administrativas da universidade, como matrícula ou trancamento",
-      "type": TypePoint.goal.toString(),
-      "name": "Entrada Reitoria"
-    };
-
     graph[0] = {};
-    pointList.add(jsonnn);
     newPointList.add(pointVar);
     super.initState();
   }
@@ -172,11 +159,11 @@ class _SVGMapState extends State<SVGMap> {
   @override
   Widget build(BuildContext context) {
     final PdfInvoiceService service = PdfInvoiceService();
-    bool isValidX = (pointList.last["x"] > ((x ?? 1) - 1) &&
-        pointList.last["x"] < ((x ?? 0) + 1));
+    bool isValidX = (newPointList.last.x > ((x ?? 1) - 1) &&
+        newPointList.last.x < ((x ?? 0) + 1));
 
-    bool isValidY = (pointList.last["y"] > ((y ?? 1)) - 1 &&
-        pointList.last["y"] < ((y ?? 0) + 1));
+    bool isValidY = (newPointList.last.y > ((y ?? 1)) - 1 &&
+        newPointList.last.y < ((y ?? 0) + 1));
 
     bool isValid = isValidX || isValidY;
 
@@ -339,7 +326,7 @@ class _SVGMapState extends State<SVGMap> {
                                 y: y ?? 0,
                                 width: widget.svgWidth,
                                 height: widget.svgHeight,
-                                lastPoint: pointList.last,
+                                lastPoint: newPointList.last,
                                 isValidX: isValidX,
                                 isValidY: isValidY,
                               ),
