@@ -30,7 +30,7 @@ class PointWidget extends StatelessWidget {
                 ? onPressed
                 : null,
         child: Container(
-          color: point.type == TypePoint.path
+          color: point.breakPoint == false
               ? Colors.red
               : Colors.green,
           width: side,

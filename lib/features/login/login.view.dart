@@ -121,7 +121,6 @@ class _LoginViewState extends State<LoginView> {
                                   app
                                       .postToken(
                                     model: userModel,
-                                    query: AppRepository.queryLogin,
                                   )
                                       .then(
                                     (value) {

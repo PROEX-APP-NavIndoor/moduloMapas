@@ -1,10 +1,4 @@
-// To parse this JSON data, do
-//
-//     final pointModel = pointModelFromJson(jsonString);
-
 import 'dart:convert';
-
-import 'package:mvp_proex/app/app.constant.dart';
 
 PointModel pointModelFromJson(String str) =>
     PointModel.fromJson(json.decode(str));
@@ -22,8 +16,7 @@ class PointModel {
       this.floor = 1,
       this.breakPoint = false,
       this.neighbor = const {},
-      this.mapId = "",
-      this.type = TypePoint.path}
+      this.mapId = ""}
       );
 
   String uuid;
@@ -36,7 +29,6 @@ class PointModel {
   bool breakPoint;
   Map<String, dynamic> neighbor;
   String mapId;
-  TypePoint type;
 
   factory PointModel.fromJson(Map<String, dynamic> json) => PointModel(
         uuid: json["id"],

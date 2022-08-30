@@ -5,7 +5,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'package:flutter_svg/svg.dart';
-import 'package:mvp_proex/app/app.constant.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:mvp_proex/features/login/login.repository.dart';
+import 'package:mvp_proex/features/user/user.model.dart';
 import 'package:mvp_proex/features/person/person.model.dart';
 import 'package:mvp_proex/features/person/person.widget.dart';
 import 'package:mvp_proex/features/point/point.model.dart';
@@ -129,19 +131,27 @@ class _SVGMapState extends State<SVGMap> {
       fit: BoxFit.none,
     );
 
+    // Realiza o login automaticamente para testes, na versão final tem que passar pela tela de login antes de entrar na tela de mapas
+    UserModel tempModel = UserModel();
+    tempModel.email = "ygor@unifei.br";
+    tempModel.password = "123456";
+    LoginRepository tempLogin = LoginRepository();
+    String tempToken;
+
     PointRepository allPoints = PointRepository();
     List jsonPlaceholder = [];
-    allPoints
-        .getAllPoints(
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Inlnb3JAdW5pZmVpLmJyIiwiaWF0IjoxNjYxNTI0MDExLCJleHAiOjE2NjE2MTA0MTEsInN1YiI6ImM5N2Y1ZmYxLTBjZWYtNDdjOS1iZjBlLWU4YWU4NzdjYTk4ZiJ9.XOPb5TGmFZvnBiONNpgZaAPz_Mw_V5h7PDCpuii3rV4")
-        .then((res) => {
-              jsonPlaceholder = (json.decode(res) as List),
-              for (var cada in jsonPlaceholder)
-                {
-                  newPointList.add(PointModel.fromJson(cada)),
-                },
-            });
+    tempLogin.postToken(model: tempModel).then((res) => {
+          tempToken = res,
+          allPoints.getAllPoints(tempToken).then((res) => {
+                jsonPlaceholder = (json.decode(res) as List),
+                for (var cada in jsonPlaceholder)
+                  {
+                    newPointList.add(PointModel.fromJson(cada)),
+                  },
+              }),
+        });
 
+    // Precisa tirar esse ponto depois porque em teoria era pra ele estar no banco
     PointModel pointVar = PointModel();
     pointVar.id = id;
     pointVar.x = widget.person.x;
@@ -149,7 +159,7 @@ class _SVGMapState extends State<SVGMap> {
     pointVar.neighbor = {};
     pointVar.description =
         "Prédio em que se concentra a maior parte das atividades administrativas da universidade, como matrícula ou trancamento";
-    pointVar.type = TypePoint.goal;
+    pointVar.breakPoint = true;
     pointVar.name = "Entrada Reitoria";
 
     graph[0] = {};
@@ -278,14 +288,15 @@ class _SVGMapState extends State<SVGMap> {
                       if (isAdmin && isValid) {
                         dialogPointWidget(
                                 context, details, id, newPointList, graph)
-                            .whenComplete(
-                          () => setState(
-                            () {
-                              id++;
-                              prev++;
-                            },
-                          ),
-                        );
+                            .whenComplete(() => {
+                              // Precisa arrumar aqui porque está aumentando o id mesmo se não adicionar o ponto, porém precisa ver um jeito de saber se foi adicionado um ponto
+                                  setState(
+                                    () {
+                                      id++;
+                                      prev++;
+                                    },
+                                  ),
+                                });
                       }
                     },
                     child: Container(
