@@ -8,7 +8,7 @@ import 'dialog_editar.dart';
 
 Future dialogEditPoint(
     BuildContext context,
-    PointModel e,
+    PointModel point,
     int id,
     int prev,
     int inicio,
@@ -22,10 +22,10 @@ Future dialogEditPoint(
       return AlertDialog(
         content: SingleChildScrollView(
           child: Column(children: [
-            Text("Nome do Ponto: ${e.name}",
+            Text("Nome do Ponto: ${point.name}",
                 style: const TextStyle(fontSize: 20)),
             Text(
-                "\nID do Ponto: ${e.id}\nX = ${e.x.toStringAsPrecision(6)}\nY = ${e.y.toStringAsPrecision(6)}\nDescrição: ${e.description}"),
+                "\nID do Ponto: ${point.id}\nX = ${point.x.toStringAsPrecision(6)}\nY = ${point.y.toStringAsPrecision(6)}\nDescrição: ${point.description}"),
           ]),
         ),
         actions: [
@@ -40,7 +40,7 @@ Future dialogEditPoint(
           ),
           TextButton(
             onPressed: () {
-              points.remove(e);
+              points.remove(point);
 
               Navigator.pop(context);
             },
@@ -51,7 +51,7 @@ Future dialogEditPoint(
           ),
           TextButton(
             onPressed: () {
-              dialogEditar(context, e);
+              dialogEditar(context, point);
             },
             child: const Text(
               "Editar Ponto",
@@ -60,7 +60,7 @@ Future dialogEditPoint(
           ),
           TextButton(
             onPressed: () {
-              qrDialog(context, e);
+              qrDialog(context, point);
             },
             child: const Text(
               "Gerar QRCode",
@@ -69,7 +69,7 @@ Future dialogEditPoint(
           ),
           TextButton(
             onPressed: () {
-              prev = e.id;
+              prev = point.id;
               Navigator.pop(context);
             },
             child: const Text(
@@ -98,7 +98,7 @@ Future dialogEditPoint(
               }
 
               // lista do caminho a ser seguido
-              List tracker = Dijkstra.findPathFromGraph(graph, here, e.id);
+              List tracker = Dijkstra.findPathFromGraph(graph, here, point.id);
 
               tracker.removeAt(0);
 
@@ -120,9 +120,9 @@ Future dialogEditPoint(
               //     .first;
 
               // // traçar o caminho, caso o caminho seja de volta
-              // while (pointInit["id"] != e["id"]) {
-              //   tracker.add(e);
-              //   e = points.where((element) => element["id"] == e["prev"]).first;
+              // while (pointInit["id"] != point["id"]) {
+              //   tracker.add(point);
+              //   point = points.where((element) => element["id"] == point["prev"]).first;
               // }
 
               // tracker = tracker.reversed.toList();

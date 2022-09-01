@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:convert';
 import 'package:mvp_proex/features/point/point.repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mvp_proex/features/point/point.model.dart';
@@ -10,6 +11,7 @@ Future dialogPointWidget(
   int id,
   List<PointModel> points,
   var graph,
+  String token,
 ) {
   return showDialog(
     context: context,
@@ -106,6 +108,9 @@ Future dialogPointWidget(
                 point.breakPoint = breakPoint;
                 point.name = name;
                 point.neighbor = {};
+                point.mapId = "7aae38c8-1ac5-4c52-bd5d-648a8625209d";
+                // TODO: pegar o mapId do mapa atual
+                // Esse mapId em teoria era pra existir no mapa aqui, mas tecnicamente ele não está registrado no banco, então não existe
                 Map<String, dynamic> jsonnn = {
                   "id": id,
                   "x": details.localPosition.dx,
@@ -140,6 +145,13 @@ Future dialogPointWidget(
 
                 // Salvar o ponto aqui
                 // TODO: colocar a função para postar o ponto
+                PointRepository pRepository = PointRepository();
+                pRepository
+                    .postPoint(
+                        token, point) // O token deve ser recebido pelo provider
+                    .then((res) {
+                  point.uuid = json.decode(res)["id"];
+                });
 
                 Navigator.pop(context);
               },

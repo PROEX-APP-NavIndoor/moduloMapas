@@ -29,7 +29,7 @@ Future qrDialog(
                 style: const TextStyle(fontSize: 20),
               ),
               QrImage(
-                data: point.id.toString(),
+                data: point.uuid.toString(),
                 size: 150,
                 errorCorrectionLevel: QrErrorCorrectLevel.H,
                 backgroundColor: Colors.white,

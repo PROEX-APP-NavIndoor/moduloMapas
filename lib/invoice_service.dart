@@ -62,9 +62,9 @@ class PdfInvoiceService {
                     ),
                     pw.SizedBox(height: 20),
                     pw.BarcodeWidget(
-                      data: point.id.toString(),
+                      data: point.uuid.toString(),
                       barcode: pw.Barcode.qrCode(
-                          typeNumber: 2,
+                          typeNumber: 5,
                           errorCorrectLevel: pw.BarcodeQRCorrectionLevel.high),
                       width: 300,
                       height: 300,

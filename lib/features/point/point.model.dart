@@ -38,17 +38,16 @@ class PointModel {
         y: json["y"].toDouble(),
         floor: json["floor"],
         breakPoint: json["breakPoint"],
-        neighbor: json["neighbor"],
+        neighbor: json["neighbor"] ?? {},
         mapId: json["map_id"],
       );
 
   Map<String, dynamic> toJson() => {
-        "id": uuid,
         "name": name,
         "description": description,
+        "floor": floor,
         "x": x,
         "y": y,
-        "floor": floor,
         "breakPoint": breakPoint,
         "neighbor": neighbor,
         "map_id": mapId,

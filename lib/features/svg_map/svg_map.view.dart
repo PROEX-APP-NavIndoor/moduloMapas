@@ -122,6 +122,8 @@ class _SVGMapState extends State<SVGMap> {
     });
   }
 
+  String tempToken = "";
+
   @override
   void initState() {
     scaleFactor = widget.svgScale;
@@ -136,7 +138,6 @@ class _SVGMapState extends State<SVGMap> {
     tempModel.email = "ygor@unifei.br";
     tempModel.password = "123456";
     LoginRepository tempLogin = LoginRepository();
-    String tempToken;
 
     PointRepository allPoints = PointRepository();
     List jsonPlaceholder = [];
@@ -287,7 +288,7 @@ class _SVGMapState extends State<SVGMap> {
                     onTapDown: (details) {
                       if (isAdmin && isValid) {
                         dialogPointWidget(
-                                context, details, id, newPointList, graph)
+                                context, details, id, newPointList, graph, tempToken)
                             .whenComplete(() => {
                                   // Precisa arrumar aqui porque está aumentando o id mesmo se não adicionar o ponto, porém precisa ver um jeito de saber se foi adicionado um ponto
                                   // é que tá como whenComplete, ou seja, tanto faz se ele abriu e fechou, se criou ou n, tem q fazer essa função retornar alguma coisa qnd cria, q aí vc vê
@@ -307,8 +308,7 @@ class _SVGMapState extends State<SVGMap> {
                       child: Stack(
                         children: [
                           svg,
-                          // não precisa ser admin para ver os pontos
-                          // if (isAdmin)
+                          if (isAdmin)
                           ...newPointList
                               .map<Widget>(
                                 (e) => PointWidget(

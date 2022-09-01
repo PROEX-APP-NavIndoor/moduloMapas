@@ -30,11 +30,37 @@ class PointRepository extends AppRepository {
     }
   }
 
+  Future postPoint(String token, PointModel point) async {
+    const String erroMessage = "Erro na consulta";
+    try {
+      if (kDebugMode) {
+        print("Post point...");
+      }
+      print(point.toJson());
+      return await dio
+          .post(
+        AppRepository.path + AppRepository.queryPoints,
+        options: Options(
+            headers: {"Authorization": "Bearer $token"},
+            responseType: ResponseType.plain),
+        data: point.toJson(),
+      )
+          .then((res) {
+        return res.toString();
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+      return erroMessage;
+    }
+  }
+
   Future editPoint(String token, PointModel point) async {
     const String erroMessage = "Erro na consulta";
     try {
       if (kDebugMode) {
-        print("Get all points...");
+        print("Edit point...");
       }
       return await dio
           .put(
