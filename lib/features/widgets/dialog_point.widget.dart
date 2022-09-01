@@ -111,6 +111,7 @@ Future dialogPointWidget(
                 point.mapId = "7aae38c8-1ac5-4c52-bd5d-648a8625209d";
                 // TODO: pegar o mapId do mapa atual
                 // Esse mapId em teoria era pra existir no mapa aqui, mas tecnicamente ele não está registrado no banco, então não existe
+
                 Map<String, dynamic> jsonnn = {
                   "id": id,
                   "x": details.localPosition.dx,
@@ -130,6 +131,7 @@ Future dialogPointWidget(
                 graph.putIfAbsent(id, () => jsonnn["vizinhos"]);
                 points.add(point);
 
+                id++;
                 await prefs.setInt('prev', id);
                 // print(points);
                 // print(graph);

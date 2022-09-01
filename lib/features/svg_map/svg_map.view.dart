@@ -90,6 +90,7 @@ class SVGMap extends StatefulWidget {
 }
 
 class _SVGMapState extends State<SVGMap> {
+  bool connected = false;
   bool isAdmin = false;
   bool isLine = true;
 
@@ -149,34 +150,40 @@ class _SVGMapState extends State<SVGMap> {
                   {
                     newPointList.add(PointModel.fromJson(cada)),
                   },
+                connected = true,
+                id = newPointList.length,
               }),
         });
 
-    // Precisa tirar esse ponto depois porque em teoria era pra ele estar no banco
-    PointModel pointVar = PointModel();
-    pointVar.id = id;
-    pointVar.x = widget.person.x;
-    pointVar.y = widget.person.y;
-    pointVar.neighbor = {};
-    pointVar.description =
-        "Prédio em que se concentra a maior parte das atividades administrativas da universidade, como matrícula ou trancamento";
-    pointVar.breakPoint = true;
-    pointVar.name = "Entrada Reitoria";
+    // // Precisa tirar esse ponto depois porque em teoria era pra ele estar no banco
+    // PointModel pointVar = PointModel();
+    // pointVar.id = id;
+    // pointVar.x = widget.person.x;
+    // pointVar.y = widget.person.y;
+    // pointVar.neighbor = {};
+    // pointVar.description =
+    //     "Prédio em que se concentra a maior parte das atividades administrativas da universidade, como matrícula ou trancamento";
+    // pointVar.breakPoint = true;
+    // pointVar.name = "Entrada Reitoria";
+    // newPointList.add(pointVar);
+    // id++;
 
     graph[0] = {};
-    id++;
-    newPointList.add(pointVar);
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     final PdfInvoiceService service = PdfInvoiceService();
-    bool isValidX = (newPointList.last.x > ((x ?? 1) - 1) &&
-        newPointList.last.x < ((x ?? 0) + 1));
 
-    bool isValidY = (newPointList.last.y > ((y ?? 1)) - 1 &&
-        newPointList.last.y < ((y ?? 0) + 1));
+    // Verifica se está conectado antes de validar o x e y para inserir novos pontos. O conectado aqui é se terminou de receber os pontos
+    bool isValidX = connected &&
+        (newPointList.last.x > ((x ?? 1) - 1) &&
+            newPointList.last.x < ((x ?? 0) + 1));
+
+    bool isValidY = connected &&
+        (newPointList.last.y > ((y ?? 1)) - 1 &&
+            newPointList.last.y < ((y ?? 0) + 1));
 
     bool isValid = isValidX || isValidY;
 
@@ -287,19 +294,21 @@ class _SVGMapState extends State<SVGMap> {
                     },
                     onTapDown: (details) {
                       if (isAdmin && isValid) {
-                        dialogPointWidget(
-                                context, details, id, newPointList, graph, tempToken)
-                            .whenComplete(() => {
-                                  // Precisa arrumar aqui porque está aumentando o id mesmo se não adicionar o ponto, porém precisa ver um jeito de saber se foi adicionado um ponto
-                                  // é que tá como whenComplete, ou seja, tanto faz se ele abriu e fechou, se criou ou n, tem q fazer essa função retornar alguma coisa qnd cria, q aí vc vê
-                                  // ah, retornou 1, quer dizer q criou, então id++ e prev++, senão n faz nada
-                                  setState(
-                                    () {
-                                      id++;
-                                      prev++;
-                                    },
-                                  ),
-                                });
+                        SharedPreferences prefs;
+                        dialogPointWidget(context, details, id, newPointList,
+                                graph, tempToken)
+                        .whenComplete(() async => {
+                              // Precisa arrumar aqui porque está aumentando o id mesmo se não adicionar o ponto, porém precisa ver um jeito de saber se foi adicionado um ponto
+                              // é que tá como whenComplete, ou seja, tanto faz se ele abriu e fechou, se criou ou n, tem q fazer essa função retornar alguma coisa qnd cria, q aí vc vê
+                              // ah, retornou 1, quer dizer q criou, então id++ e prev++, senão n faz nada
+                              prefs = await SharedPreferences.getInstance(),
+                              setState(
+                                () {
+                                  id = (prefs.getInt('prev') ?? id);
+                                  prev++;
+                                },
+                              ),
+                            });
                       }
                     },
                     child: Container(
@@ -309,29 +318,29 @@ class _SVGMapState extends State<SVGMap> {
                         children: [
                           svg,
                           if (isAdmin)
-                          ...newPointList
-                              .map<Widget>(
-                                (e) => PointWidget(
-                                  point: e,
-                                  side: 5,
-                                  onPressed: () {
-                                    if (isAdmin) {
-                                      //somente desktop
-                                      dialogEditPoint(
-                                          context,
-                                          e,
-                                          id,
-                                          prev,
-                                          inicio,
-                                          centralizar,
-                                          widget,
-                                          newPointList,
-                                          graph);
-                                    }
-                                  },
-                                ),
-                              )
-                              .toList(),
+                            ...newPointList
+                                .map<Widget>(
+                                  (e) => PointWidget(
+                                    point: e,
+                                    side: 5,
+                                    onPressed: () {
+                                      if (isAdmin) {
+                                        //somente desktop
+                                        dialogEditPoint(
+                                            context,
+                                            e,
+                                            id,
+                                            prev,
+                                            inicio,
+                                            centralizar,
+                                            widget,
+                                            newPointList,
+                                            graph);
+                                      }
+                                    },
+                                  ),
+                                )
+                                .toList(),
                           PersonWidget(
                             person: widget.person,
                           ),

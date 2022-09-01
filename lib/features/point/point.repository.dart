@@ -36,7 +36,6 @@ class PointRepository extends AppRepository {
       if (kDebugMode) {
         print("Post point...");
       }
-      print(point.toJson());
       return await dio
           .post(
         AppRepository.path + AppRepository.queryPoints,

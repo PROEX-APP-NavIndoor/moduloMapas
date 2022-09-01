@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:dijkstra/dijkstra.dart';
-import 'package:mvp_proex/features/widgets/dialog_point.widget.dart';
 import 'package:mvp_proex/features/widgets/dialog_qrcode.widget.dart';
 import 'package:mvp_proex/features/point/point.model.dart';
 
@@ -83,7 +82,21 @@ Future dialogEditPoint(
               style: TextStyle(color: Colors.deepPurple),
             ),
             onPressed: () async {
-              // TODO: Caminho melhor
+
+              // Teste com grafo em mapa de strings
+              // /*
+              Map newGraph = {
+                "id1": {"id2": 1},
+                "id2": {"id1": 1, "id4": 1},
+                "id4": {"id2": 1},
+              };
+
+              List resultado =
+                  Dijkstra.findPathFromGraph(newGraph, "id4", "id1");
+              print(resultado);
+              // */
+
+              // // TODO: Caminho melhor
               // fechar pop up
               Navigator.pop(context);
 
