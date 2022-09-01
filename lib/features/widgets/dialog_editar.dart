@@ -91,7 +91,9 @@ Future dialogEditar(
                 onPressed: () {
                   point.name = name;
                   point.description = descricao;
-                  PointRepository().editPoint(token, point);
+                  PointRepository tempo = PointRepository();
+                  tempo.editPoint(token, point);
+
                   Navigator.pop(context);
                 },
                 child: const Text(

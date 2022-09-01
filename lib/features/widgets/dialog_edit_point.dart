@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dijkstra/dijkstra.dart';
+import 'package:mvp_proex/features/point/point.repository.dart';
 import 'package:mvp_proex/features/widgets/dialog_qrcode.widget.dart';
 import 'package:mvp_proex/features/point/point.model.dart';
 
@@ -10,6 +11,7 @@ Future dialogEditPoint(
     PointModel point,
     int id,
     int prev,
+    String token,
     int inicio,
     Function centralizar,
     var widget,
@@ -40,7 +42,7 @@ Future dialogEditPoint(
           TextButton(
             onPressed: () {
               points.remove(point);
-
+              PointRepository().deletePoint(token, point.uuid);
               Navigator.pop(context);
             },
             child: const Text(
@@ -82,7 +84,6 @@ Future dialogEditPoint(
               style: TextStyle(color: Colors.deepPurple),
             ),
             onPressed: () async {
-
               // Teste com grafo em mapa de strings
               // /*
               Map newGraph = {

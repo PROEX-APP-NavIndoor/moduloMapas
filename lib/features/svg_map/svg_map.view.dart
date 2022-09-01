@@ -107,6 +107,9 @@ class _SVGMapState extends State<SVGMap> {
   late double objetivoX;
   late double objetivoY;
 
+  //só enquanto tivermos apenas esse mapa, depois que tiver uma tela pra escolher o mapa teremos que mudar
+  late String reitoriaId = "7aae38c8-1ac5-4c52-bd5d-648a8625209d";
+
   int prev = 0;
   int id = 0;
   int inicio = 0;
@@ -142,6 +145,7 @@ class _SVGMapState extends State<SVGMap> {
 
     PointRepository allPoints = PointRepository();
     List jsonPlaceholder = [];
+    String jsonMap;
     tempLogin.postToken(model: tempModel).then((res) => {
           tempToken = res,
           allPoints.getAllPoints(tempToken).then((res) => {
@@ -297,18 +301,17 @@ class _SVGMapState extends State<SVGMap> {
                         SharedPreferences prefs;
                         dialogPointWidget(context, details, id, newPointList,
                                 graph, tempToken)
-                        .whenComplete(() async => {
-                              // Precisa arrumar aqui porque está aumentando o id mesmo se não adicionar o ponto, porém precisa ver um jeito de saber se foi adicionado um ponto
-                              // é que tá como whenComplete, ou seja, tanto faz se ele abriu e fechou, se criou ou n, tem q fazer essa função retornar alguma coisa qnd cria, q aí vc vê
-                              // ah, retornou 1, quer dizer q criou, então id++ e prev++, senão n faz nada
-                              prefs = await SharedPreferences.getInstance(),
-                              setState(
-                                () {
-                                  id = (prefs.getInt('prev') ?? id);
-                                  prev++;
-                                },
-                              ),
-                            });
+                            .whenComplete(() async => {
+                                  // Precisa arrumar aqui porque está aumentando o id mesmo se não adicionar o ponto, porém precisa ver um jeito de saber se foi adicionado um ponto
+
+                                  prefs = await SharedPreferences.getInstance(),
+                                  setState(
+                                    () {
+                                      id = (prefs.getInt('prev') ?? id);
+                                      prev++;
+                                    },
+                                  ),
+                                });
                       }
                     },
                     child: Container(
@@ -331,6 +334,7 @@ class _SVGMapState extends State<SVGMap> {
                                             e,
                                             id,
                                             prev,
+                                            tempToken,
                                             inicio,
                                             centralizar,
                                             widget,
