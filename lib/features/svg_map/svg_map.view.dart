@@ -289,7 +289,9 @@ class _SVGMapState extends State<SVGMap> {
                         dialogPointWidget(
                                 context, details, id, newPointList, graph)
                             .whenComplete(() => {
-                              // Precisa arrumar aqui porque está aumentando o id mesmo se não adicionar o ponto, porém precisa ver um jeito de saber se foi adicionado um ponto
+                                  // Precisa arrumar aqui porque está aumentando o id mesmo se não adicionar o ponto, porém precisa ver um jeito de saber se foi adicionado um ponto
+                                  // é que tá como whenComplete, ou seja, tanto faz se ele abriu e fechou, se criou ou n, tem q fazer essa função retornar alguma coisa qnd cria, q aí vc vê
+                                  // ah, retornou 1, quer dizer q criou, então id++ e prev++, senão n faz nada
                                   setState(
                                     () {
                                       id++;

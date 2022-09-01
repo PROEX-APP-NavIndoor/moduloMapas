@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:mvp_proex/app/app.constant.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mvp_proex/features/point/point.model.dart';
+import 'package:mvp_proex/features/point/point.repository.dart';
 
 Future dialogEditar(
   BuildContext context,
@@ -11,6 +12,8 @@ Future dialogEditar(
   return showDialog(
       context: context,
       builder: (context) {
+        String token =
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Inlnb3JAdW5pZmVpLmJyIiwiaWF0IjoxNjYxOTk1MzYyLCJleHAiOjE2NjIwODE3NjIsInN1YiI6ImM5N2Y1ZmYxLTBjZWYtNDdjOS1iZjBlLWU4YWU4NzdjYTk4ZiJ9.O49n56mID96cu2vY2ig-6AIL1NuL6lIYDcaO41g0LLA";
         TypePoint type = TypePoint.path;
         String name = point.name;
         String descricao = point.description;
@@ -88,6 +91,7 @@ Future dialogEditar(
                 onPressed: () {
                   point.name = name;
                   point.description = descricao;
+                  PointRepository().editPoint(token, point);
                   Navigator.pop(context);
                 },
                 child: const Text(
