@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mvp_proex/app/app.repository.dart';
@@ -70,17 +72,19 @@ class PointRepository extends AppRepository {
         AppRepository.path + AppRepository.queryMap + "/" + mapID,
         options: Options(
             headers: {"Authorization": "Bearer $token"},
-            responseType: ResponseType.plain),
+            responseType: ResponseType.json),
       )
           .then(
         (res) {
-          return res.data.toString();
+          return (json.decode(res.toString())['points']);
         },
       );
     } catch (e) {
       return erroMessage;
     }
   }
+
+  // O json é recebido como string, mas quando dá decode, ele vira um mapa, então quando dá json.decode(res.toString()), temos um mapa onde a chave 'points' tem como valor um vetor de mapas. No PointModel.fromJson não se usa um tipo "Json" (isso não existe), se usa um mapa; portanto pegar só o ['points'] é exatamente o que precisa para transformar cada mapa dentro desse vetor em um PointModel
 
   Future editPoint(String token, PointModel point) async {
     const String erroMessage = "Erro na consulta";

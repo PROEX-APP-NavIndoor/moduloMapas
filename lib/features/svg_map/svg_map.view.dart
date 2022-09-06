@@ -144,13 +144,10 @@ class _SVGMapState extends State<SVGMap> {
     LoginRepository tempLogin = LoginRepository();
 
     PointRepository allPoints = PointRepository();
-    List jsonPlaceholder = [];
-    String jsonMap;
     tempLogin.postToken(model: tempModel).then((res) => {
           tempToken = res,
-          allPoints.getAllPoints(tempToken).then((res) => {
-                jsonPlaceholder = (json.decode(res) as List),
-                for (var cada in jsonPlaceholder)
+          allPoints.getMapPoints(tempToken, reitoriaId).then((res) => {
+                for (var cada in res)
                   {
                     newPointList.add(PointModel.fromJson(cada)),
                   },
