@@ -95,11 +95,17 @@ Future dialogPointWidget(
                 /* Calcular o peso das distâncias com base na diferença das coordenadas */
                 SharedPreferences prefs = await SharedPreferences.getInstance();
 
-                int prev = (prefs.getInt('prev') ?? 0);
-                // print(prev);
-                int peso = ((details.localPosition.dx - points[prev].x).abs() +
-                        (details.localPosition.dy - points[prev].y).abs())
+                int prev = (prefs.getInt('prev') ?? 1);
+
+                int peso = ((details.localPosition.dx - points[prev-1].x).abs() +
+                        (details.localPosition.dy - points[prev-1].y).abs())
                     .round();
+                print("peso = $peso");
+                print(details.localPosition.dx);
+                print(details.localPosition.dy);
+                print(points[prev-1].x.abs());
+                print(points[prev-1].y.abs());
+
                 PointModel point = PointModel();
                 point.id = id;
                 point.x = details.localPosition.dx;
@@ -107,7 +113,7 @@ Future dialogPointWidget(
                 point.description = descricao;
                 point.breakPoint = breakPoint;
                 point.name = name;
-                point.neighbor = {};
+                point.neighbor = {}; //colocar o peso aqui
                 point.mapId = "7aae38c8-1ac5-4c52-bd5d-648a8625209d";
                 // TODO: pegar o mapId do mapa atual
                 // Esse mapId em teoria era pra existir no mapa aqui, mas tecnicamente ele não está registrado no banco, então não existe
@@ -122,11 +128,9 @@ Future dialogPointWidget(
                   "breakPoint": breakPoint,
                   "name": name
                 };
-                // print(prev);
 
                 /* O ponto anterior a este deve conter o novo ponto */
-                // points[prev - 1].neighbor.putIfAbsent(id, () => peso);
-                graph[prev - 1] = points[prev - 1].neighbor;
+                graph[prev - 2] = points[prev - 2].neighbor;
 
                 graph.putIfAbsent(id, () => jsonnn["vizinhos"]);
                 points.add(point);
@@ -136,21 +140,19 @@ Future dialogPointWidget(
                 // print(points);
                 // print(graph);
 
-                // List<String> myList = (prefs.getStringList('tracker') ?? []);
-                // List<int> myOriginaList =
-                //     myList.map((i) => int.parse(i)).toList();
-                // print('Your list  $myOriginaList');
+                List<String> myList = (prefs.getStringList('tracker') ?? []);
+                List<int> myOriginaList =
+                    myList.map((i) => int.parse(i)).toList();
+                print('Your list  $myOriginaList');
 
+                // //TODO: remover esse comentário abaixo?
                 // int usuarioPos = (prefs.getInt('pos') ?? 0);
-
                 // print('Usuario pos $usuarioPos');
 
-                // Salvar o ponto aqui
-                // TODO: colocar a função para postar o ponto
                 PointRepository pRepository = PointRepository();
                 pRepository
                     .postPoint(
-                        token, point) // O token deve ser recebido pelo provider
+                        token, point) // TODO: receber o token pelo provider
                     .then((res) {
                   point.uuid = json.decode(res)["id"];
                 });

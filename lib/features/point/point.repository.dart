@@ -126,7 +126,6 @@ class PointRepository extends AppRepository {
       )
           .then(
         (res) {
-          print(res.toString());
           return res.toString();
         },
       );
