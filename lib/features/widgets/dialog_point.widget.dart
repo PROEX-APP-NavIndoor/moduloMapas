@@ -107,6 +107,12 @@ Future dialogPointWidget(
                 int peso = ((details.localPosition.dx - pontoAnterior.x).abs() +
                         (details.localPosition.dy - pontoAnterior.y).abs())
                     .round();
+                print("peso = $peso");
+                print(details.localPosition.dx);
+                print(details.localPosition.dy);
+                //print(points[prev-1].x.abs());
+                //print(points[prev-1].y.abs());
+
                 PointModel point = PointModel();
                 point.id = id;
                 point.x = details.localPosition.dx;
@@ -114,7 +120,7 @@ Future dialogPointWidget(
                 point.description = descricao;
                 point.breakPoint = breakPoint;
                 point.name = name;
-                point.neighbor = {};
+                point.neighbor = {}; //colocar o peso aqui
                 point.mapId = "7aae38c8-1ac5-4c52-bd5d-648a8625209d";
                 // TODO: pegar o mapId do mapa atual
                 // Esse mapId em teoria era pra existir no mapa aqui, mas tecnicamente ele não está registrado no banco, então não existe
@@ -123,7 +129,7 @@ Future dialogPointWidget(
                 PointRepository pRepository = PointRepository();
                 pRepository
                     .postPoint(
-                        token, point) // O token deve ser recebido pelo provider
+                        token, point) // TODO: receber o token pelo provider
                     .then((res) {
                   point.uuid = json.decode(res)["id"];
                 });

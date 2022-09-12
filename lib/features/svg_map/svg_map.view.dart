@@ -24,7 +24,7 @@ class SVGMap extends StatefulWidget {
   ///
   /// ```dart
   /// SVGMap(
-  ///   svgPath: "assets/maps/reitoria/mapaTeste.svg",
+  ///   svgPath: "assets/maps/c1/c1PavimentoTerreo.svg",
   ///   ...
   /// ),
   /// ```
@@ -163,7 +163,7 @@ class _SVGMapState extends State<SVGMap> {
           pontoAnterior = newPointList.last,
         });
 
-    // // Precisa tirar esse ponto depois porque em teoria era pra ele estar no banco
+    // // O ponto inicial (Entrada Reitoria)
     // PointModel pointVar = PointModel();
     // pointVar.id = id;
     // pointVar.x = widget.person.x;
@@ -299,7 +299,7 @@ class _SVGMapState extends State<SVGMap> {
                       );
                     },
                     onTapDown: (details) {
-                      if (isAdmin && isValid) {
+                      if (isAdmin && isValid && isLine) {
                         SharedPreferences prefs;
                         dialogPointWidget(context, details, id, newPointList,
                                 graph, tempToken)
