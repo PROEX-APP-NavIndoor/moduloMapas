@@ -158,9 +158,10 @@ class _SVGMapState extends State<SVGMap> {
                   },
                 connected = true,
                 id = newPointList.length,
+                print(newPointList),
+                prefs.setString('prev', newPointList.last.uuid),
+                pontoAnterior = newPointList.last,
               }),
-          prefs.setString('prev', newPointList.last.uuid),
-          pontoAnterior = newPointList.last,
         });
 
     // // O ponto inicial (Entrada Reitoria)
