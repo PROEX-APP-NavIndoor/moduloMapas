@@ -110,7 +110,8 @@ class _SVGMapState extends State<SVGMap> {
   //só enquanto tivermos apenas esse mapa, depois que tiver uma tela pra escolher o mapa teremos que mudar
   late String reitoriaId = "7aae38c8-1ac5-4c52-bd5d-648a8625209d";
 
-  int prev = 0;
+  String prev = "";
+  late PointModel pontoAnterior;
   int id = 0;
   int inicio = 0;
   List<PointModel> newPointList = [];
@@ -143,9 +144,13 @@ class _SVGMapState extends State<SVGMap> {
     tempModel.password = "123456";
     LoginRepository tempLogin = LoginRepository();
 
+    SharedPreferences prefs;
+
     PointRepository allPoints = PointRepository();
-    tempLogin.postToken(model: tempModel).then((res) => {
+
+    tempLogin.postToken(model: tempModel).then((res) async => {
           tempToken = res,
+          prefs = await SharedPreferences.getInstance(),
           allPoints.getMapPoints(tempToken, reitoriaId).then((res) => {
                 for (var cada in res)
                   {
@@ -154,6 +159,8 @@ class _SVGMapState extends State<SVGMap> {
                 connected = true,
                 id = newPointList.length,
               }),
+          prefs.setString('prev', newPointList.last.uuid),
+          pontoAnterior = newPointList.last,
         });
 
     // // Precisa tirar esse ponto depois porque em teoria era pra ele estar no banco
@@ -179,12 +186,10 @@ class _SVGMapState extends State<SVGMap> {
 
     // Verifica se está conectado antes de validar o x e y para inserir novos pontos. O conectado aqui é se terminou de receber os pontos
     bool isValidX = connected &&
-        (newPointList.last.x > ((x ?? 1) - 1) &&
-            newPointList.last.x < ((x ?? 0) + 1));
+        (pontoAnterior.x > ((x ?? 1) - 1) && pontoAnterior.x < ((x ?? 0) + 1));
 
     bool isValidY = connected &&
-        (newPointList.last.y > ((y ?? 1)) - 1 &&
-            newPointList.last.y < ((y ?? 0) + 1));
+        (pontoAnterior.y > ((y ?? 1)) - 1 && pontoAnterior.y < ((y ?? 0) + 1));
 
     bool isValid = isValidX || isValidY;
 
@@ -304,8 +309,8 @@ class _SVGMapState extends State<SVGMap> {
                                   prefs = await SharedPreferences.getInstance(),
                                   setState(
                                     () {
-                                      id = (prefs.getInt('prev') ?? id);
-                                      prev++;
+                                      prev = (prefs.getString('prev') ?? "");
+                                      // prev++;
                                     },
                                   ),
                                 });
@@ -351,9 +356,9 @@ class _SVGMapState extends State<SVGMap> {
                               y: y ?? 0,
                               width: widget.svgWidth,
                               height: widget.svgHeight,
-                              lastPoint: newPointList.last,
                               isValidX: isValidX,
                               isValidY: isValidY,
+                              lastPoint: newPointList.last,
                             ),
                         ],
                       ),

@@ -10,7 +10,7 @@ Future dialogEditPoint(
     BuildContext context,
     PointModel point,
     int id,
-    int prev,
+    String prev,
     String token,
     int inicio,
     Function centralizar,
@@ -70,7 +70,7 @@ Future dialogEditPoint(
           ),
           TextButton(
             onPressed: () {
-              prev = point.id;
+              prev = point.uuid;
               Navigator.pop(context);
             },
             child: const Text(

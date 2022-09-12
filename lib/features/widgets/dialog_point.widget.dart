@@ -92,13 +92,20 @@ Future dialogPointWidget(
           ),
           TextButton(
               onPressed: () async {
+                //usando esse point model para que seja possível acessar os valores do ponto com o uuid desejado
+                late PointModel pontoAnterior;
                 /* Calcular o peso das distâncias com base na diferença das coordenadas */
                 SharedPreferences prefs = await SharedPreferences.getInstance();
 
-                int prev = (prefs.getInt('prev') ?? 0);
+                for (int i = 0; i < points.length; i++) {
+                  if (points[i].uuid == prefs.getString('prev')) {
+                    pontoAnterior = points[i];
+                  }
+                }
+                //int prev = (prefs.getInt('prev') ?? 0);
                 // print(prev);
-                int peso = ((details.localPosition.dx - points[prev].x).abs() +
-                        (details.localPosition.dy - points[prev].y).abs())
+                int peso = ((details.localPosition.dx - pontoAnterior.x).abs() +
+                        (details.localPosition.dy - pontoAnterior.y).abs())
                     .round();
                 PointModel point = PointModel();
                 point.id = id;
@@ -112,41 +119,7 @@ Future dialogPointWidget(
                 // TODO: pegar o mapId do mapa atual
                 // Esse mapId em teoria era pra existir no mapa aqui, mas tecnicamente ele não está registrado no banco, então não existe
 
-                Map<String, dynamic> jsonnn = {
-                  "id": id,
-                  "x": details.localPosition.dx,
-                  "y": details.localPosition.dy,
-                  "descricao": descricao,
-                  /*Sempre existirá ao menos um vizinho, que é o ponto anterior*/
-                  "vizinhos": {prev++: peso},
-                  "breakPoint": breakPoint,
-                  "name": name
-                };
-                // print(prev);
-
-                /* O ponto anterior a este deve conter o novo ponto */
-                // points[prev - 1].neighbor.putIfAbsent(id, () => peso);
-                graph[prev - 1] = points[prev - 1].neighbor;
-
-                graph.putIfAbsent(id, () => jsonnn["vizinhos"]);
-                points.add(point);
-
-                id++;
-                await prefs.setInt('prev', id);
-                // print(points);
-                // print(graph);
-
-                // List<String> myList = (prefs.getStringList('tracker') ?? []);
-                // List<int> myOriginaList =
-                //     myList.map((i) => int.parse(i)).toList();
-                // print('Your list  $myOriginaList');
-
-                // int usuarioPos = (prefs.getInt('pos') ?? 0);
-
-                // print('Usuario pos $usuarioPos');
-
-                // Salvar o ponto aqui
-                // TODO: colocar a função para postar o ponto
+                await prefs.setString('prev', point.uuid);
                 PointRepository pRepository = PointRepository();
                 pRepository
                     .postPoint(
