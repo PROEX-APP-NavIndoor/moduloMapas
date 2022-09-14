@@ -5,7 +5,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'package:flutter_svg/svg.dart';
-import 'package:mvp_proex/app/app.constant.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:mvp_proex/features/login/login.repository.dart';
+import 'package:mvp_proex/features/user/user.model.dart';
 import 'package:mvp_proex/features/person/person.model.dart';
 import 'package:mvp_proex/features/person/person.widget.dart';
 import 'package:mvp_proex/features/point/point.model.dart';
@@ -22,7 +24,7 @@ class SVGMap extends StatefulWidget {
   ///
   /// ```dart
   /// SVGMap(
-  ///   svgPath: "assets/maps/reitoria/mapaTeste.svg",
+  ///   svgPath: "assets/maps/c1/c1PavimentoTerreo.svg",
   ///   ...
   /// ),
   /// ```
@@ -88,6 +90,7 @@ class SVGMap extends StatefulWidget {
 }
 
 class _SVGMapState extends State<SVGMap> {
+  bool connected = false;
   bool isAdmin = false;
   bool isLine = true;
 
@@ -104,11 +107,13 @@ class _SVGMapState extends State<SVGMap> {
   late double objetivoX;
   late double objetivoY;
 
-  int prev = 0;
+  //só enquanto tivermos apenas esse mapa, depois que tiver uma tela pra escolher o mapa teremos que mudar
+  late String reitoriaId = "7aae38c8-1ac5-4c52-bd5d-648a8625209d";
+
+  String prev = "";
+  late PointModel pontoAnterior;
   int id = 0;
   int inicio = 0;
-  List<Map<String, dynamic>> pointList = [];
-  List jsonPlaceholder = [];
   List<PointModel> newPointList = [];
   Map graph = {};
 
@@ -122,6 +127,8 @@ class _SVGMapState extends State<SVGMap> {
     });
   }
 
+  String tempToken = "";
+
   @override
   void initState() {
     scaleFactor = widget.svgScale;
@@ -131,52 +138,59 @@ class _SVGMapState extends State<SVGMap> {
       fit: BoxFit.none,
     );
 
+    // Realiza o login automaticamente para testes, na versão final tem que passar pela tela de login antes de entrar na tela de mapas
+    UserModel tempModel = UserModel();
+    tempModel.email = "ygor@unifei.br";
+    tempModel.password = "123456";
+    LoginRepository tempLogin = LoginRepository();
+
+    SharedPreferences prefs;
+
     PointRepository allPoints = PointRepository();
-    allPoints
-        .getAllPoints(
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Inlnb3JAdW5pZmVpLmJyIiwiaWF0IjoxNjYxNDYxNjAwLCJleHAiOjE2NjE1NDgwMDAsInN1YiI6ImM5N2Y1ZmYxLTBjZWYtNDdjOS1iZjBlLWU4YWU4NzdjYTk4ZiJ9.4NuK3UVe04-9qg-Rn23KNPEVQCxM6gbtGLkfC_qcU8Q")
-        .then((res) => {
-          jsonPlaceholder = json.decode(res) as List
-          });
-    for (var cada in jsonPlaceholder) {
-      newPointList.add(PointModel.fromJson(cada));
-    }
 
-    PointModel pointVar = PointModel();
-    pointVar.id = id;
-    pointVar.x = widget.person.x;
-    pointVar.y = widget.person.y;
-    pointVar.neighbor = {};
-    pointVar.description =
-        "Prédio em que se concentra a maior parte das atividades administrativas da universidade, como matrícula ou trancamento";
-    pointVar.type = TypePoint.goal;
-    pointVar.name = "Entrada Reitoria";
+    tempLogin.postToken(model: tempModel).then((res) async => {
+          tempToken = res,
+          prefs = await SharedPreferences.getInstance(),
+          allPoints.getMapPoints(tempToken, reitoriaId).then((res) => {
+                for (var cada in res)
+                  {
+                    newPointList.add(PointModel.fromJson(cada)),
+                  },
+                connected = true,
+                id = newPointList.length,
+                print(newPointList),
+                prefs.setString('prev', newPointList.last.uuid),
+                pontoAnterior = newPointList.last,
+              }),
+        });
 
-    Map<String, dynamic> jsonnn = {
-      "id": id++,
-      "x": widget.person.x,
-      "y": widget.person.y,
-      "vizinhos": {},
-      "descricao":
-          "Prédio em que se concentra a maior parte das atividades administrativas da universidade, como matrícula ou trancamento",
-      "type": TypePoint.goal.toString(),
-      "name": "Entrada Reitoria"
-    };
+    // // O ponto inicial (Entrada Reitoria)
+    // PointModel pointVar = PointModel();
+    // pointVar.id = id;
+    // pointVar.x = widget.person.x;
+    // pointVar.y = widget.person.y;
+    // pointVar.neighbor = {};
+    // pointVar.description =
+    //     "Prédio em que se concentra a maior parte das atividades administrativas da universidade, como matrícula ou trancamento";
+    // pointVar.breakPoint = true;
+    // pointVar.name = "Entrada Reitoria";
+    // newPointList.add(pointVar);
+    // id++;
 
     graph[0] = {};
-    pointList.add(jsonnn);
-    newPointList.add(pointVar);
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     final PdfInvoiceService service = PdfInvoiceService();
-    bool isValidX = (pointList.last["x"] > ((x ?? 1) - 1) &&
-        pointList.last["x"] < ((x ?? 0) + 1));
 
-    bool isValidY = (pointList.last["y"] > ((y ?? 1)) - 1 &&
-        pointList.last["y"] < ((y ?? 0) + 1));
+    // Verifica se está conectado antes de validar o x e y para inserir novos pontos. O conectado aqui é se terminou de receber os pontos
+    bool isValidX = connected &&
+        (pontoAnterior.x > ((x ?? 1) - 1) && pontoAnterior.x < ((x ?? 0) + 1));
+
+    bool isValidY = connected &&
+        (pontoAnterior.y > ((y ?? 1)) - 1 && pontoAnterior.y < ((y ?? 0) + 1));
 
     bool isValid = isValidX || isValidY;
 
@@ -212,7 +226,6 @@ class _SVGMapState extends State<SVGMap> {
                 ),
               ],
             ),
-            //Caso queira navegar para outra página
             Positioned(
               top: -10,
               left: 0,
@@ -286,19 +299,22 @@ class _SVGMapState extends State<SVGMap> {
                         },
                       );
                     },
-                    // TODO: mudar para TapDown?
                     onTapDown: (details) {
-                      if (isAdmin && isValid) {
-                        dialogPointWidget(
-                                context, details, id, newPointList, graph)
-                            .whenComplete(
-                          () => setState(
-                            () {
-                              id++;
-                              prev++;
-                            },
-                          ),
-                        );
+                      if (isAdmin && isValid && isLine) {
+                        SharedPreferences prefs;
+                        dialogPointWidget(context, details, id, newPointList,
+                                graph, tempToken)
+                            .whenComplete(() async => {
+                                  // Precisa arrumar aqui porque está aumentando o id mesmo se não adicionar o ponto, porém precisa ver um jeito de saber se foi adicionado um ponto
+
+                                  prefs = await SharedPreferences.getInstance(),
+                                  setState(
+                                    () {
+                                      prev = (prefs.getString('prev') ?? "");
+                                      // prev++;
+                                    },
+                                  ),
+                                });
                       }
                     },
                     child: Container(
@@ -316,12 +332,12 @@ class _SVGMapState extends State<SVGMap> {
                                     onPressed: () {
                                       if (isAdmin) {
                                         //somente desktop
-
                                         dialogEditPoint(
                                             context,
                                             e,
                                             id,
                                             prev,
+                                            tempToken,
                                             inicio,
                                             centralizar,
                                             widget,
@@ -341,9 +357,9 @@ class _SVGMapState extends State<SVGMap> {
                               y: y ?? 0,
                               width: widget.svgWidth,
                               height: widget.svgHeight,
-                              lastPoint: pointList.last,
                               isValidX: isValidX,
                               isValidY: isValidY,
+                              lastPoint: newPointList.last,
                             ),
                         ],
                       ),

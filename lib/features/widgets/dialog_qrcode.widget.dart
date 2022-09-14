@@ -8,7 +8,6 @@ Future qrDialog(
   PointModel point,
 ) async {
   final PdfInvoiceService service = PdfInvoiceService();
-
   return showDialog(
     context: context,
     builder: (context) {
@@ -30,11 +29,17 @@ Future qrDialog(
                 style: const TextStyle(fontSize: 20),
               ),
               QrImage(
-                data: point.id.toString(),
+                data: point.uuid.toString(),
                 size: 150,
                 errorCorrectionLevel: QrErrorCorrectLevel.H,
                 backgroundColor: Colors.white,
                 gapless: true,
+                // tentativa de adicionar um logo ao qrcode
+                //embeddedImage:
+                //    const AssetImage('modulomapas/assets/images/logo.png'),
+                //embeddedImageStyle: QrEmbeddedImageStyle(
+                //  size: const Size(80, 80),
+                //),
               ),
               Text(
                 point.description,

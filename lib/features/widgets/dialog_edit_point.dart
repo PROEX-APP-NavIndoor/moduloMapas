@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:dijkstra/dijkstra.dart';
+import 'package:mvp_proex/features/point/point.repository.dart';
 import 'package:mvp_proex/features/widgets/dialog_qrcode.widget.dart';
 import 'package:mvp_proex/features/point/point.model.dart';
 
+import 'dialog_editar.dart';
+
 Future dialogEditPoint(
     BuildContext context,
-    PointModel e,
+    PointModel point,
     int id,
-    int prev,
+    String prev,
+    String token,
     int inicio,
     Function centralizar,
     var widget,
@@ -19,10 +23,10 @@ Future dialogEditPoint(
       return AlertDialog(
         content: SingleChildScrollView(
           child: Column(children: [
-            Text("Nome do Ponto: ${e.name}",
+            Text("Nome do Ponto: ${point.name}",
                 style: const TextStyle(fontSize: 20)),
             Text(
-                "\nID do Ponto: ${e.id}\nX = ${e.x.toStringAsPrecision(6)}\nY = ${e.y.toStringAsPrecision(6)}\nDescrição: ${e.description}"),
+                "\nID do Ponto: ${point.id}\nX = ${point.x.toStringAsPrecision(6)}\nY = ${point.y.toStringAsPrecision(6)}\nDescrição: ${point.description}"),
           ]),
         ),
         actions: [
@@ -37,8 +41,8 @@ Future dialogEditPoint(
           ),
           TextButton(
             onPressed: () {
-              points.remove(e);
-
+              points.remove(point);
+              PointRepository().deletePoint(token, point.uuid);
               Navigator.pop(context);
             },
             child: const Text(
@@ -48,7 +52,16 @@ Future dialogEditPoint(
           ),
           TextButton(
             onPressed: () {
-              qrDialog(context, e);
+              dialogEditar(context, point);
+            },
+            child: const Text(
+              "Editar Ponto",
+              style: TextStyle(color: Colors.redAccent),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              qrDialog(context, point);
             },
             child: const Text(
               "Gerar QRCode",
@@ -57,7 +70,7 @@ Future dialogEditPoint(
           ),
           TextButton(
             onPressed: () {
-              prev = e.id;
+              prev = point.uuid;
               Navigator.pop(context);
             },
             child: const Text(
@@ -71,7 +84,20 @@ Future dialogEditPoint(
               style: TextStyle(color: Colors.deepPurple),
             ),
             onPressed: () async {
-              // TODO: Caminho melhor
+              // Teste com grafo em mapa de strings
+              // /*
+              Map newGraph = {
+                "id1": {"id2": 1},
+                "id2": {"id1": 1, "id4": 1},
+                "id4": {"id2": 1},
+              };
+
+              List resultado =
+                  Dijkstra.findPathFromGraph(newGraph, "id4", "id1");
+              print(resultado);
+              // */
+
+              // // TODO: Caminho melhor
               // fechar pop up
               Navigator.pop(context);
 
@@ -86,15 +112,15 @@ Future dialogEditPoint(
               }
 
               // lista do caminho a ser seguido
-              List tracker = Dijkstra.findPathFromGraph(graph, here, e.id);
+              List tracker = Dijkstra.findPathFromGraph(graph, here, point.id);
 
               tracker.removeAt(0);
 
               for (var i = 0; i < tracker.length; i++) {
-                widget.person.setx = points
-                    .firstWhere((element) => element.id == tracker[i]).x;
-                widget.person.sety = points
-                    .firstWhere((element) => element.id == tracker[i]).y;
+                widget.person.setx =
+                    points.firstWhere((element) => element.id == tracker[i]).x;
+                widget.person.sety =
+                    points.firstWhere((element) => element.id == tracker[i]).y;
                 inicio = tracker[i];
                 await Future.delayed(const Duration(seconds: 3));
                 centralizar(true);
@@ -108,9 +134,9 @@ Future dialogEditPoint(
               //     .first;
 
               // // traçar o caminho, caso o caminho seja de volta
-              // while (pointInit["id"] != e["id"]) {
-              //   tracker.add(e);
-              //   e = points.where((element) => element["id"] == e["prev"]).first;
+              // while (pointInit["id"] != point["id"]) {
+              //   tracker.add(point);
+              //   point = points.where((element) => element["id"] == point["prev"]).first;
               // }
 
               // tracker = tracker.reversed.toList();

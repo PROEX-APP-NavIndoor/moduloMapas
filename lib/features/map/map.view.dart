@@ -17,7 +17,7 @@ class _MapViewState extends State<MapView> {
     return Scaffold(
       body: SafeArea(
         child: SVGMap(
-          svgPath: "assets/maps/reitoria/mapaTeste.svg",
+          svgPath: "assets/maps/c1/c1PavimentoTerreo.svg",
           svgWidth: 800,
           svgHeight: 600,
           svgScale: 1.3,
