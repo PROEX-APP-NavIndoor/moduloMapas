@@ -158,7 +158,6 @@ class _SVGMapState extends State<SVGMap> {
                   },
                 connected = true,
                 id = newPointList.length,
-                print(newPointList),
                 prefs.setString('prev', newPointList.last.uuid),
                 pontoAnterior = newPointList.last,
               }),
@@ -304,16 +303,12 @@ class _SVGMapState extends State<SVGMap> {
                         SharedPreferences prefs;
                         dialogPointWidget(context, details, id, newPointList,
                                 graph, tempToken)
-                            .whenComplete(() async => {
-                                  // Precisa arrumar aqui porque está aumentando o id mesmo se não adicionar o ponto, porém precisa ver um jeito de saber se foi adicionado um ponto
-
-                                  prefs = await SharedPreferences.getInstance(),
-                                  setState(
-                                    () {
-                                      prev = (prefs.getString('prev') ?? "");
-                                      // prev++;
-                                    },
-                                  ),
+                            .then((point) => {
+                                  if (point != null)
+                                    {
+                                      newPointList.add(point),
+                                      pontoAnterior = newPointList.last
+                                    }
                                 });
                       }
                     },
@@ -359,7 +354,7 @@ class _SVGMapState extends State<SVGMap> {
                               height: widget.svgHeight,
                               isValidX: isValidX,
                               isValidY: isValidY,
-                              lastPoint: newPointList.last,
+                              lastPoint: pontoAnterior,
                             ),
                         ],
                       ),

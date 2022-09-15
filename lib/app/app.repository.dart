@@ -16,7 +16,7 @@ class AppRepository {
   Future<String> post(
       {required dynamic model, required String query, Options? options}) async {
     const String erroMessage = "Erro na consulta";
-    print(model.toJson());
+    //print(model.toJson());
     try {
       return await dio
           .post(
