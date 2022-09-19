@@ -18,6 +18,7 @@ import 'package:mvp_proex/features/widgets/custom_appbar.widget.dart';
 import 'package:mvp_proex/features/widgets/dialog_edit_point.dart';
 import 'package:mvp_proex/features/widgets/dialog_point.widget.dart';
 import 'package:mvp_proex/invoice_service.dart';
+import 'package:dio/dio.dart';
 
 class SVGMap extends StatefulWidget {
   /// Define o caminho do asset:
@@ -126,16 +127,16 @@ class _SVGMapState extends State<SVGMap> {
     });
   }
 
-  String tempToken = "";
+  PointRepository allPoints = PointRepository();
+  Future<String>? connected;
+  SharedPreferences? prefs;
+  String erroMessage = "";
 
   // Realiza o login automaticamente para testes, na versão final tem que passar pela tela de login antes de entrar na tela de mapas
+  String tempToken = "";
   UserModel tempModel = UserModel();
   LoginRepository tempLogin = LoginRepository();
-  PointRepository allPoints = PointRepository();
 
-  SharedPreferences? prefs;
-
-  Future<String>? connected;
   Future<String> _initialization() async {
     tempModel.email = "ygor@unifei.br";
     tempModel.password = "123456";
@@ -145,7 +146,7 @@ class _SVGMapState extends State<SVGMap> {
               tempToken = res,
               prefs = await SharedPreferences.getInstance(),
               await allPoints
-                  .getMapPoints(tempToken, reitoriaId)
+                  .getMapPoints("tempToken", reitoriaId)
                   .then((res) => {
                         for (var cada in res)
                           {
@@ -158,7 +159,12 @@ class _SVGMapState extends State<SVGMap> {
                       }),
             },
           );
-    } catch (e) {
+    } on DioError catch (e) {
+      // Tratar os códigos de erro assim
+      switch (e.response?.statusCode) {
+        case 401:
+          erroMessage = "[401] Não autorizado";
+      }
       throw ("Erro de conexão");
     }
     return "true";
@@ -174,19 +180,6 @@ class _SVGMapState extends State<SVGMap> {
     );
 
     connected = _initialization();
-
-    // // O ponto inicial (Entrada Reitoria)
-    // PointModel pointVar = PointModel();
-    // pointVar.id = id;
-    // pointVar.x = widget.person.x;
-    // pointVar.y = widget.person.y;
-    // pointVar.neighbor = {};
-    // pointVar.description =
-    //     "Prédio em que se concentra a maior parte das atividades administrativas da universidade, como matrícula ou trancamento";
-    // pointVar.breakPoint = true;
-    // pointVar.name = "Entrada Reitoria";
-    // newPointList.add(pointVar);
-    // id++;
 
     graph[0] = {};
     super.initState();
@@ -207,13 +200,27 @@ class _SVGMapState extends State<SVGMap> {
       builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
         Widget child;
         if (snapshot.hasError) {
-          child = const Center(
-              child: Text(
-            "Ocorreu um erro",
-            style: TextStyle(
-              color: Colors.amber,
+          child = Scaffold(
+            body: AlertDialog(
+              title: const Text("Erro de conexão"),
+              content: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    const Text(
+                        "Ocorreu um erro ao se conectar com o servidor:"),
+                    Text(erroMessage),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      print("Voltar para página anterior");
+                    },
+                    child: const Text("Voltar"))
+              ],
             ),
-          ));
+          );
         } else if (snapshot.connectionState == ConnectionState.done) {
           bool isValidX = pontoAnterior.x > ((x ?? 1) - 1) &&
               pontoAnterior.x < ((x ?? 0) + 1);

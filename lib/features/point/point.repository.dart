@@ -22,9 +22,6 @@ class PointRepository extends AppRepository {
       )
           .then(
         (res) {
-          // print(res);
-          // print(res.toString());
-          // print("Resposta acima");
           return res.toString();
         },
       );
@@ -79,8 +76,9 @@ class PointRepository extends AppRepository {
           return (json.decode(res.toString())['points']);
         },
       );
-    } catch (e) {
-      return erroMessage;
+    } on DioError {
+      // Não é necessário catch, porque o erro que ocorrer aqui deve ser tratado no svg_map.view, então apenas repassa o erro para lá
+      rethrow;
     }
   }
 
