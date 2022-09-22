@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:convert';
+import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -117,6 +118,8 @@ class _SVGMapState extends State<SVGMap> {
   List<PointModel> newPointList = [];
   Map graph = {};
 
+  final PdfInvoiceService service = PdfInvoiceService();
+
   void centralizar(bool flagScale) {
     setState(() {
       flagDuration = flagScale;
@@ -130,16 +133,14 @@ class _SVGMapState extends State<SVGMap> {
   PointRepository allPoints = PointRepository();
   Future<String>? connected;
   SharedPreferences? prefs;
-  String erroMessage = "";
+  String erroMessage = "Erro inesperado - contate o suporte";
 
   // Realiza o login automaticamente para testes, na versão final tem que passar pela tela de login antes de entrar na tela de mapas
   String tempToken = "";
-  UserModel tempModel = UserModel();
+  UserModel tempModel = UserModel(email: "ygor@unifei.br", password: "123456");
   LoginRepository tempLogin = LoginRepository();
 
   Future<String> _initialization() async {
-    tempModel.email = "ygor@unifei.br";
-    tempModel.password = "123456";
     try {
       await tempLogin.postToken(model: tempModel).then(
             (res) async => {
@@ -164,14 +165,69 @@ class _SVGMapState extends State<SVGMap> {
       switch (e.response?.statusCode) {
         case 401:
           erroMessage = "[401] Não autorizado";
+          break;
+        default:
+          erroMessage = "Erro desconhecido - contate o suporte";
       }
+      _strcontroller.sink.addError(erroMessage);
       throw ("Erro de conexão");
     }
     return "true";
   }
 
+  Stream<String>? _bids;
+
+  StreamController<String> _strcontroller = StreamController<String>();
+  Future t3() async {
+    print("A");
+    // late StreamController<String> controller;
+    _strcontroller = StreamController<String>(
+      onPause: () => print('Paused'),
+      onResume: () => print('Resumed'),
+      onCancel: () => print('Cancelled'),
+      onListen: () async {
+        print("data");
+        SharedPreferences prefs;
+        try {
+          await tempLogin.postToken(model: tempModel).then(
+                (res) async => {
+                  tempToken = res,
+                  prefs = await SharedPreferences.getInstance(),
+                  await allPoints
+                      .getMapPoints(tempToken, reitoriaId)
+                      .then((res) => {
+                            for (var cada in res)
+                              {
+                                newPointList.add(PointModel.fromJson(cada)),
+                              },
+                            id = newPointList.length,
+                            print(newPointList),
+                            prefs.setString('prev', newPointList.last.uuid),
+                            pontoAnterior = newPointList.last,
+                          }),
+                },
+              );
+          _strcontroller.done;
+        } on DioError catch (e) {
+          switch (e.response?.statusCode) {
+            case 401:
+              erroMessage = "[401] Não autorizado";
+              break;
+            default:
+              erroMessage = "Erro desconhecido - contate o suporte";
+          }
+          _strcontroller.addError(erroMessage);
+          throw ("Erro de conexão");
+        }
+      },
+    );
+    _strcontroller.add("1");
+  }
+
   @override
   void initState() {
+    t3();
+
     scaleFactor = widget.svgScale;
     svg = SvgPicture.asset(
       widget.svgPath,
@@ -179,7 +235,7 @@ class _SVGMapState extends State<SVGMap> {
       fit: BoxFit.none,
     );
 
-    connected = _initialization();
+    // connected = _initialization();
 
     graph[0] = {};
     super.initState();
@@ -187,17 +243,15 @@ class _SVGMapState extends State<SVGMap> {
 
   @override
   Widget build(BuildContext context) {
-    final PdfInvoiceService service = PdfInvoiceService();
-
     if (left == null && top == null) {
       top = ((widget.person.y - MediaQuery.of(context).size.height / 2) +
               AppBar().preferredSize.height) *
           -1;
       left = (widget.person.x - MediaQuery.of(context).size.width / 2) * -1;
     }
-    return FutureBuilder(
-      future: connected,
-      builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+    return StreamBuilder<Object>(
+      stream: _strcontroller.stream,
+      builder: (context, snapshot) {
         Widget child;
         if (snapshot.hasError) {
           child = Scaffold(
@@ -217,11 +271,42 @@ class _SVGMapState extends State<SVGMap> {
                     onPressed: () {
                       print("Voltar para página anterior");
                     },
-                    child: const Text("Voltar"))
+                    child: const Text("Voltar")),
+                TextButton(
+                    onPressed: () {
+                      print("Tentar novamente");
+                      t3();
+                      // setState(() {
+                      //   t3();
+                      // });
+                    },
+                    child: const Text("Tentar novamente")),
               ],
             ),
           );
-        } else if (snapshot.connectionState == ConnectionState.done) {
+        } else if (snapshot.connectionState != ConnectionState.done) {
+          child = Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                SizedBox(
+                  width: 60,
+                  height: 60,
+                  child: CircularProgressIndicator(),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 16),
+                  child: Text(
+                    'Aguardando servidor...',
+                    style: TextStyle(
+                      color: Colors.amber,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        } else {
           bool isValidX = pontoAnterior.x > ((x ?? 1) - 1) &&
               pontoAnterior.x < ((x ?? 0) + 1);
 
@@ -495,28 +580,6 @@ class _SVGMapState extends State<SVGMap> {
                   child: const Icon(
                     Icons.center_focus_strong,
                     size: 30,
-                  ),
-                ),
-              ],
-            ),
-          );
-        } else {
-          child = Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                SizedBox(
-                  width: 60,
-                  height: 60,
-                  child: CircularProgressIndicator(),
-                ),
-                Padding(
-                  padding: EdgeInsets.only(top: 16),
-                  child: Text(
-                    'Aguardando servidor...',
-                    style: TextStyle(
-                      color: Colors.amber,
-                    ),
                   ),
                 ),
               ],
