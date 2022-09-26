@@ -133,60 +133,20 @@ class _SVGMapState extends State<SVGMap> {
   PointRepository allPoints = PointRepository();
   Future<String>? connected;
   SharedPreferences? prefs;
-  String erroMessage = "Erro inesperado - contate o suporte";
+  String erroMessage = "ERRO INESPERADO";
 
   // Realiza o login automaticamente para testes, na versão final tem que passar pela tela de login antes de entrar na tela de mapas
   String tempToken = "";
   UserModel tempModel = UserModel(email: "ygor@unifei.br", password: "123456");
   LoginRepository tempLogin = LoginRepository();
 
-  Future<String> _initialization() async {
-    try {
-      await tempLogin.postToken(model: tempModel).then(
-            (res) async => {
-              tempToken = res,
-              prefs = await SharedPreferences.getInstance(),
-              await allPoints
-                  .getMapPoints("tempToken", reitoriaId)
-                  .then((res) => {
-                        for (var cada in res)
-                          {
-                            newPointList.add(PointModel.fromJson(cada)),
-                          },
-                        id = newPointList.length,
-                        print(newPointList),
-                        prefs!.setString('prev', newPointList.last.uuid),
-                        pontoAnterior = newPointList.last,
-                      }),
-            },
-          );
-    } on DioError catch (e) {
-      // Tratar os códigos de erro assim
-      switch (e.response?.statusCode) {
-        case 401:
-          erroMessage = "[401] Não autorizado";
-          break;
-        default:
-          erroMessage = "Erro desconhecido - contate o suporte";
-      }
-      _strcontroller.sink.addError(erroMessage);
-      throw ("Erro de conexão");
-    }
-    return "true";
-  }
-
-  Stream<String>? _bids;
-
   StreamController<String> _strcontroller = StreamController<String>();
   Future t3() async {
-    print("A");
-    // late StreamController<String> controller;
     _strcontroller = StreamController<String>(
       onPause: () => print('Paused'),
       onResume: () => print('Resumed'),
       onCancel: () => print('Cancelled'),
       onListen: () async {
-        print("data");
         SharedPreferences prefs;
         try {
           await tempLogin.postToken(model: tempModel).then(
@@ -201,27 +161,40 @@ class _SVGMapState extends State<SVGMap> {
                                 newPointList.add(PointModel.fromJson(cada)),
                               },
                             id = newPointList.length,
-                            print(newPointList),
                             prefs.setString('prev', newPointList.last.uuid),
                             pontoAnterior = newPointList.last,
                           }),
                 },
               );
-          _strcontroller.done;
+          _strcontroller.sink.add("1");
+          _strcontroller.close();
         } on DioError catch (e) {
           switch (e.response?.statusCode) {
+            case 400:
+              erroMessage = "[400] Credenciais incorretas";
+              break;
             case 401:
               erroMessage = "[401] Não autorizado";
               break;
             default:
-              erroMessage = "Erro desconhecido - contate o suporte";
+              erroMessage = "Erro desconhecido (" +
+                  e.response!.statusCode.toString() +
+                  ")" +
+                  " - contate o suporte";
+              break;
           }
           _strcontroller.addError(erroMessage);
-          throw ("Erro de conexão");
+          // throw ("Erro de conexão");
         }
       },
     );
     _strcontroller.add("1");
+  }
+
+  @override
+  void dispose() {
+    _strcontroller.close();
+    super.dispose();
   }
 
   @override
@@ -234,8 +207,6 @@ class _SVGMapState extends State<SVGMap> {
       color: Colors.white,
       fit: BoxFit.none,
     );
-
-    // connected = _initialization();
 
     graph[0] = {};
     super.initState();
@@ -274,11 +245,11 @@ class _SVGMapState extends State<SVGMap> {
                     child: const Text("Voltar")),
                 TextButton(
                     onPressed: () {
-                      print("Tentar novamente");
+                      if (kDebugMode) {
+                        print("Tentar conexão novamente..");
+                      }
                       t3();
-                      // setState(() {
-                      //   t3();
-                      // });
+                      setState(() {});
                     },
                     child: const Text("Tentar novamente")),
               ],
