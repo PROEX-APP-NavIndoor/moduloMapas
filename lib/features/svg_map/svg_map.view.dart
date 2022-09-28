@@ -207,7 +207,6 @@ class _SVGMapState extends State<SVGMap> {
       color: Colors.white,
       fit: BoxFit.none,
     );
-
     graph[0] = {};
     super.initState();
   }
@@ -447,7 +446,7 @@ class _SVGMapState extends State<SVGMap> {
                                     height: widget.svgHeight,
                                     isValidX: isValidX,
                                     isValidY: isValidY,
-                                    lastPoint: newPointList.last,
+                                    lastPoint: pontoAnterior,
                                   ),
                               ],
                             ),
