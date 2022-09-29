@@ -10,14 +10,15 @@ class MapView extends StatefulWidget {
 }
 
 class _MapViewState extends State<MapView> {
-  PersonModel person = PersonModel(639, 274, 0, -22.2467586, -45.0171148, 0);
+  PersonModel person = PersonModel(234, 300, 0, -22.2467586, -45.0171148, 0);
+  // Reitoria xy: 639 274
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: SVGMap(
-          svgPath: "assets/maps/c1/c1PavimentoTerreo.svg",
+          svgPath: "assets/maps/c1/c1PavimentoSuperior.svg",
           svgWidth: 800,
           svgHeight: 600,
           svgScale: 1.3,

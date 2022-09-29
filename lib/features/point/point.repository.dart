@@ -22,9 +22,6 @@ class PointRepository extends AppRepository {
       )
           .then(
         (res) {
-          // print(res);
-          // print(res.toString());
-          // print("Resposta acima");
           return res.toString();
         },
       );
@@ -60,9 +57,7 @@ class PointRepository extends AppRepository {
   }
 
   // pega todos os pontos de um mapa
-
   Future getMapPoints(String token, String mapID) async {
-    const String erroMessage = "Erro na consulta";
     try {
       if (kDebugMode) {
         print("Get map points...");
@@ -79,8 +74,11 @@ class PointRepository extends AppRepository {
           return (json.decode(res.toString())['points']);
         },
       );
-    } catch (e) {
-      return erroMessage;
+    } on DioError {
+      // Não é necessário catch, porque o erro que ocorrer aqui deve ser tratado no svg_map.view, então apenas repassa o erro para lá
+      // Pode ser que seja melhor retornar uma string sobre o erro (ao invés do erro todo), e então apenas mostrar a mensagem, mas aí ocorreria um erro inesperado - não haveria nenhum throw aqui, o erro em si só aconteceria no svg_map ao tentar tratar a string da mensagem de erro de resposta como se fosse a lista de pontos esperada.
+      // É melhor então tratar um erro que nós mesmos jogamos ou tratar qualquer erro inesperado indefinidamente?
+      rethrow;
     }
   }
 
@@ -102,7 +100,7 @@ class PointRepository extends AppRepository {
       )
           .then(
         (res) {
-          print(res.toString());
+          // print(res.toString());
           return res.toString();
         },
       );
