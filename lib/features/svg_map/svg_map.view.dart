@@ -179,8 +179,7 @@ class _SVGMapState extends State<SVGMap> {
             default:
               erroMessage = "Erro desconhecido (" +
                   e.response!.statusCode.toString() +
-                  ")" +
-                  " - contate o suporte";
+                  ") - contate o suporte";
               break;
           }
           _strcontroller.addError(erroMessage);
@@ -389,19 +388,12 @@ class _SVGMapState extends State<SVGMap> {
                               SharedPreferences prefs;
                               dialogPointWidget(context, details, id,
                                       newPointList, graph, tempToken)
-                                  .whenComplete(() async => {
-                                        // Precisa arrumar aqui porque está aumentando o id mesmo se não adicionar o ponto, porém precisa ver um jeito de saber se foi adicionado um ponto
-
-                                        prefs = await SharedPreferences
-                                            .getInstance(),
-                                        setState(
-                                          () {
-                                            prev =
-                                                (prefs.getString('prev') ?? "");
-                                            // prev++;
-                                          },
-                                        ),
-                                      });
+                                  .then((point) => {
+                                    if(point != null){
+                                      newPointList.add(point),
+                                      pontoAnterior = newPointList.last
+                                    }
+                                  });
                             }
                           },
                           child: Container(
