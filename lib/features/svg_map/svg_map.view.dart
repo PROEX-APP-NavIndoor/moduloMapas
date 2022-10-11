@@ -110,6 +110,7 @@ class _SVGMapState extends State<SVGMap> {
 
   //só enquanto tivermos apenas esse mapa, depois que tiver uma tela pra escolher o mapa teremos que mudar
   late String reitoriaId = "7aae38c8-1ac5-4c52-bd5d-648a8625209d";
+  late String blocoC11Id = "c5e47fab-0a29-4d79-be62-ae3320629dbd";
 
   String prev = "";
   late PointModel pontoAnterior;
@@ -134,14 +135,16 @@ class _SVGMapState extends State<SVGMap> {
   Future<String>? connected;
   SharedPreferences? prefs;
   String erroMessage = "ERRO INESPERADO";
+  String erroDetalhe = "ERRO INESPERADO";
 
   // Realiza o login automaticamente para testes, na versão final tem que passar pela tela de login antes de entrar na tela de mapas
   String tempToken = "";
-  UserModel tempModel = UserModel(email: "ygor@unifei.br", password: "123456");
+  UserModel tempModel =
+      UserModel(email: "gabriel@gmail.com", password: "123456");
   LoginRepository tempLogin = LoginRepository();
 
   StreamController<String> _strcontroller = StreamController<String>();
-  Future t3() async {
+  Future fetchMapPoints() async {
     _strcontroller = StreamController<String>(
       onPause: () => print('Paused'),
       onResume: () => print('Resumed'),
@@ -154,13 +157,14 @@ class _SVGMapState extends State<SVGMap> {
                   tempToken = res,
                   prefs = await SharedPreferences.getInstance(),
                   await allPoints
-                      .getMapPoints(tempToken, reitoriaId)
+                      .getMapPoints(tempToken, blocoC11Id)
                       .then((res) => {
                             for (var cada in res)
                               {
                                 newPointList.add(PointModel.fromJson(cada)),
                               },
                             id = newPointList.length,
+                            // TODO: tratar quando não houver pontos no mapa (quando id == 0)
                             prefs.setString('prev', newPointList.last.uuid),
                             pontoAnterior = newPointList.last,
                           }),
@@ -169,17 +173,27 @@ class _SVGMapState extends State<SVGMap> {
           _strcontroller.sink.add("1");
           _strcontroller.close();
         } on DioError catch (e) {
+          if (kDebugMode) {
+            print(e.response?.data);
+          }
           switch (e.response?.statusCode) {
             case 400:
               erroMessage = "[400] Credenciais incorretas";
+              erroDetalhe = "Verifique o login";
               break;
             case 401:
               erroMessage = "[401] Não autorizado";
+              erroDetalhe = "O usuário não possui autorização";
+              break;
+            case 404:
+              erroMessage = "[404] Não encontrado";
+              erroDetalhe = e.response!.data["message"];
               break;
             default:
               erroMessage = "Erro desconhecido (" +
                   e.response!.statusCode.toString() +
                   ") - contate o suporte";
+              erroDetalhe = e.response?.data["message"];
               break;
           }
           _strcontroller.addError(erroMessage);
@@ -198,7 +212,7 @@ class _SVGMapState extends State<SVGMap> {
 
   @override
   void initState() {
-    t3();
+    fetchMapPoints();
 
     scaleFactor = widget.svgScale;
     svg = SvgPicture.asset(
@@ -231,7 +245,11 @@ class _SVGMapState extends State<SVGMap> {
                   children: [
                     const Text(
                         "Ocorreu um erro ao se conectar com o servidor:"),
-                    Text(erroMessage),
+                    Text(
+                      erroMessage,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(erroDetalhe),
                   ],
                 ),
               ),
@@ -246,7 +264,7 @@ class _SVGMapState extends State<SVGMap> {
                       if (kDebugMode) {
                         print("Tentar conexão novamente..");
                       }
-                      t3();
+                      fetchMapPoints();
                       setState(() {});
                     },
                     child: const Text("Tentar novamente")),
@@ -389,11 +407,12 @@ class _SVGMapState extends State<SVGMap> {
                               dialogPointWidget(context, details, id,
                                       newPointList, graph, tempToken)
                                   .then((point) => {
-                                    if(point != null){
-                                      newPointList.add(point),
-                                      pontoAnterior = newPointList.last
-                                    }
-                                  });
+                                        if (point != null)
+                                          {
+                                            newPointList.add(point),
+                                            pontoAnterior = newPointList.last
+                                          }
+                                      });
                             }
                           },
                           child: Container(

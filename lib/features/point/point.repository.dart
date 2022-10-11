@@ -32,7 +32,6 @@ class PointRepository extends AppRepository {
 
   // salva um ponto
   Future postPoint(String token, PointModel point) async {
-    const String erroMessage = "Erro na consulta";
     try {
       if (kDebugMode) {
         print("Post point...");
@@ -48,11 +47,9 @@ class PointRepository extends AppRepository {
           .then((res) {
         return res.toString();
       });
-    } catch (e) {
-      if (kDebugMode) {
-        print(e);
-      }
-      return erroMessage;
+    } on DioError {
+      print("ERRO no post");
+      rethrow;
     }
   }
 

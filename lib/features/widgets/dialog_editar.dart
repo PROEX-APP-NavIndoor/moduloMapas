@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mvp_proex/app/app.constant.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:mvp_proex/features/point/point.model.dart';
 import 'package:mvp_proex/features/point/point.repository.dart';
 
 Future dialogEditar(

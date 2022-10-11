@@ -42,14 +42,14 @@ Future dialogEditPoint(
           if (point.neighbor["next"] == null)
             TextButton(
               onPressed: () {
-                //To Do: Testar se está dando certo
-                point.neighbor["prev"].remove(point.neighbor["next"]);
+                //TODO: Testar se está dando certo
+                // point.neighbor["prev"].remove(point.neighbor["next"]);
                 PointRepository tempo = PointRepository();
 
-                tempo.editPoint(token, point.neighbor["prev"]);
+                // tempo.editPoint(token, point.neighbor["prev"]);''
                 points.remove(point);
                 PointRepository().deletePoint(token, point.uuid);
-
+                // TODO: esperar resposta do servidor
                 Navigator.pop(context);
               },
               child: const Text(

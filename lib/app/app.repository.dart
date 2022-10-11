@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 
 class AppRepository {
-  static const String path = 'https://app-proex.herokuapp.com';
+  static const String path = 'https://api-proex.onrender.com';
   static const String queryLogin = '/login';
   static const String queryUser = '/users';
   static const String queryMap = '/maps';

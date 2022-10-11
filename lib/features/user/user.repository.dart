@@ -5,7 +5,7 @@ import 'package:mvp_proex/app/app.repository.dart';
 import 'package:mvp_proex/features/user/user.model.dart';
 
 class Repository extends AppRepository {
-  Dio dio = new Dio();
+  // Dio dio = new Dio();
 
   Future<String> login({required UserModel userModel}) async {
     try {

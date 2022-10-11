@@ -1,7 +1,9 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'package:mvp_proex/features/point/point.repository.dart';
+import 'package:mvp_proex/features/widgets/shared/snackbar.message.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mvp_proex/features/point/point.model.dart';
 
@@ -124,26 +126,33 @@ Future dialogPointWidget(
                 point.neighbor = {
                   "prev": pontoAnterior.uuid,
                 }; //colocar o peso aqui
-                point.mapId = "7aae38c8-1ac5-4c52-bd5d-648a8625209d";
+                point.mapId = "c5e47fab-0a29-4d79-be62-ae3320629dbd";
                 // TODO: pegar o mapId do mapa atual
                 // Esse mapId em teoria era pra existir no mapa aqui, mas tecnicamente ele não está registrado no banco, então não existe
 
                 PointRepository pRepository = PointRepository();
-                pRepository
-                    .postPoint(
-                        token, point) // TODO: receber o token pelo provider
-                    .then((value) {
-                  point.uuid = json.decode(value)["id"];
-                  prefs.setString('prev', point.uuid);
-                  pontoAnterior.neighbor = {
-                    "prev": pontoAnterior.neighbor["prev"],
-                    "next": point.uuid
-                  };
-                  pRepository.editPoint(token, pontoAnterior).then((value) {
-                    print(pontoAnterior.neighbor);
-                    Navigator.pop(context, point);
-                  }); // para futuros tratamento de exceções
-                });
+
+                try {
+                  await pRepository
+                      .postPoint(
+                          token, point) // TODO: receber o token pelo provider
+                      .then((value) {
+                    point.uuid = json.decode(value)["id"];
+                    prefs.setString('prev', point.uuid);
+                    pontoAnterior.neighbor = {
+                      "prev": pontoAnterior.neighbor["prev"],
+                      "next": point.uuid
+                    };
+                    pRepository.editPoint(token, pontoAnterior).then((value) {
+                      print(pontoAnterior.neighbor);
+                      Navigator.pop(context, point);
+                    });
+                  });
+                } on DioError catch (e) {
+                  //TODO: arrumar mensagem de erro
+                  showMessageError(
+                      context: context, text: e.message + e.response?.data['message']);
+                }
               },
               child: const Text("Adicionar")),
         ],
