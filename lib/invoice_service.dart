@@ -61,13 +61,13 @@ class PdfInvoiceService {
                     pw.Row(
                         mainAxisAlignment: pw.MainAxisAlignment.center,
                         children: [
-                          for (int cont = 0; cont < 5; cont++)
+                          for (int cont = 0; cont < 4; cont++)
                             pw.Padding(
-                                padding: const pw.EdgeInsets.all(2.0),
+                                padding: const pw.EdgeInsets.all(8.0),
                                 child: pw.Column(children: [
-                                  for (int cont = 0; cont < 5; cont++)
+                                  for (int cont = 0; cont < 4; cont++)
                                     pw.Padding(
-                                      padding: const pw.EdgeInsets.all(2.0),
+                                      padding: const pw.EdgeInsets.all(8.0),
                                       child: pw.BarcodeWidget(
                                         padding: const pw.EdgeInsets.only(),
                                         data: point.uuid.toString(),
@@ -75,8 +75,8 @@ class PdfInvoiceService {
                                             typeNumber: 5,
                                             errorCorrectLevel: pw
                                                 .BarcodeQRCorrectionLevel.high),
-                                        width: 80,
-                                        height: 80,
+                                        width: 90,
+                                        height: 90,
                                       ),
                                     ),
                                   pw.SizedBox(height: 10),
