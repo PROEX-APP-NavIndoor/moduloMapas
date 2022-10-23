@@ -100,11 +100,8 @@ Future dialogPointWidget(
                 /* Calcular o peso das distâncias com base na diferença das coordenadas */
                 SharedPreferences prefs = await SharedPreferences.getInstance();
 
-                for (int i = 0; i < points.length; i++) {
-                  if (points[i].uuid == prefs.getString('prev')) {
-                    pontoAnterior = points[i];
-                  }
-                }
+                pontoAnterior =
+                    pointModelFromJson(prefs.getString("pontoAnterior") ?? "");
                 //int prev = (prefs.getInt('prev') ?? 0);
                 // print(prev);
                 int peso = ((details.localPosition.dx - pontoAnterior.x).abs() +
@@ -117,7 +114,7 @@ Future dialogPointWidget(
                 //print(points[prev-1].y.abs());
 
                 PointModel point = PointModel();
-                point.id = id;
+
                 point.x = details.localPosition.dx;
                 point.y = details.localPosition.dy;
                 point.description = descricao;
@@ -138,7 +135,10 @@ Future dialogPointWidget(
                           token, point) // TODO: receber o token pelo provider
                       .then((value) {
                     point.uuid = json.decode(value)["id"];
-                    prefs.setString('prev', point.uuid);
+                    prefs.setString(
+                      "pontoAnterior",
+                      pointModelToJson(point),
+                    );
                     pontoAnterior.neighbor = {
                       "prev": pontoAnterior.neighbor["prev"],
                       "next": point.uuid
@@ -151,7 +151,8 @@ Future dialogPointWidget(
                 } on DioError catch (e) {
                   //TODO: arrumar mensagem de erro
                   showMessageError(
-                      context: context, text: e.message + e.response?.data['message']);
+                      context: context,
+                      text: e.message + e.response?.data['message']);
                 }
               },
               child: const Text("Adicionar")),

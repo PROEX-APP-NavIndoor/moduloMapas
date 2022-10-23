@@ -3,6 +3,7 @@ import 'package:dijkstra/dijkstra.dart';
 import 'package:mvp_proex/features/point/point.repository.dart';
 import 'package:mvp_proex/features/widgets/dialog_qrcode.widget.dart';
 import 'package:mvp_proex/features/point/point.model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'dialog_editar.dart';
 
@@ -10,7 +11,6 @@ Future dialogEditPoint(
     BuildContext context,
     PointModel point,
     int id,
-    String prev,
     String token,
     int inicio,
     Function centralizar,
@@ -77,8 +77,18 @@ Future dialogEditPoint(
           ),
           TextButton(
             onPressed: () {
-              prev = point.uuid;
-              Navigator.pop(context);
+              SharedPreferences? prefs;
+              SharedPreferences.getInstance().then((value) {
+                prefs = value;
+                prefs?.setString(
+                  "pontoAnterior",
+                  pointModelToJson(point),
+                );
+
+                print(prefs?.getString("pontoAnterior") ?? "");
+
+                Navigator.pop(context);
+              });
             },
             child: const Text(
               "Usar como anterior",

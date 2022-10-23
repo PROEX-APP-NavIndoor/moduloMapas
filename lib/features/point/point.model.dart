@@ -16,8 +16,7 @@ class PointModel {
       this.floor = 1,
       this.breakPoint = false,
       this.neighbor = const {},
-      this.mapId = ""}
-      );
+      this.mapId = ""});
 
   String uuid;
   int id;
@@ -31,7 +30,7 @@ class PointModel {
   String mapId;
 
   factory PointModel.fromJson(Map<String, dynamic> json) => PointModel(
-        uuid: json["id"],
+        uuid: "", //json["uuid"],
         name: json["name"],
         description: json["description"],
         x: json["x"].toDouble(),
@@ -43,6 +42,7 @@ class PointModel {
       );
 
   Map<String, dynamic> toJson() => {
+        "uuid": uuid,
         "name": name,
         "description": description,
         "floor": floor,

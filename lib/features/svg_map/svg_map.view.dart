@@ -156,18 +156,21 @@ class _SVGMapState extends State<SVGMap> {
                 (res) async => {
                   tempToken = res,
                   prefs = await SharedPreferences.getInstance(),
-                  await allPoints
-                      .getMapPoints(tempToken, blocoC11Id)
-                      .then((res) => {
-                            for (var cada in res)
-                              {
-                                newPointList.add(PointModel.fromJson(cada)),
-                              },
-                            id = newPointList.length,
-                            // TODO: tratar quando não houver pontos no mapa (quando id == 0)
-                            prefs.setString('prev', newPointList.last.uuid),
-                            pontoAnterior = newPointList.last,
-                          }),
+                  await allPoints.getMapPoints(tempToken, blocoC11Id).then(
+                        (res) => {
+                          for (var cada in res)
+                            {
+                              newPointList.add(PointModel.fromJson(cada)),
+                            },
+                          id = newPointList.length,
+                          // TODO: tratar quando não houver pontos no mapa (quando id == 0)
+                          prefs.setString(
+                            "pontoAnterior",
+                            pointModelToJson(newPointList.first),
+                          ),
+                          pontoAnterior = newPointList.first,
+                        },
+                      ),
                 },
               );
           _strcontroller.sink.add("1");
@@ -431,16 +434,35 @@ class _SVGMapState extends State<SVGMap> {
                                             if (isAdmin) {
                                               //somente desktop
                                               dialogEditPoint(
-                                                  context,
-                                                  e,
-                                                  id,
-                                                  prev,
-                                                  tempToken,
-                                                  inicio,
-                                                  centralizar,
-                                                  widget,
-                                                  newPointList,
-                                                  graph);
+                                                      context,
+                                                      e,
+                                                      id,
+                                                      tempToken,
+                                                      inicio,
+                                                      centralizar,
+                                                      widget,
+                                                      newPointList,
+                                                      graph)
+                                                  .whenComplete(
+                                                () {
+                                                  SharedPreferences
+                                                          .getInstance()
+                                                      .then(
+                                                    (value) {
+                                                      prefs = value;
+                                                      setState(
+                                                        () {
+                                                          pontoAnterior =
+                                                              pointModelFromJson(
+                                                                  prefs?.getString(
+                                                                          "pontoAnterior") ??
+                                                                      "");
+                                                        },
+                                                      );
+                                                    },
+                                                  );
+                                                },
+                                              );
                                             }
                                           },
                                         ),
