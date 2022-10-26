@@ -30,7 +30,7 @@ class PointModel {
   String mapId;
 
   factory PointModel.fromJson(Map<String, dynamic> json) => PointModel(
-        uuid: "", //json["uuid"],
+        uuid: json["id"] ?? "",
         name: json["name"],
         description: json["description"],
         x: json["x"].toDouble(),
@@ -42,7 +42,7 @@ class PointModel {
       );
 
   Map<String, dynamic> toJson() => {
-        "uuid": uuid,
+        "id": uuid,
         "name": name,
         "description": description,
         "floor": floor,

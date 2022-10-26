@@ -45,7 +45,7 @@ class _PointWidgetState extends State<PointWidget> {
 
       if (widget.point.breakPoint) {
         return Colors.green;
-      } else if (widget.point.name == pontoAnterior?.name) {
+      } else if (widget.point.uuid == pontoAnterior?.uuid) {
         return Colors.yellow;
       }
       return Colors.red;
