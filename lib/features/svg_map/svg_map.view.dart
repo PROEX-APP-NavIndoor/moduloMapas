@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:convert';
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -9,8 +8,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mvp_proex/features/login/login.repository.dart';
 import 'package:mvp_proex/features/user/user.model.dart';
-import 'package:mvp_proex/features/person/person.model.dart';
-import 'package:mvp_proex/features/person/person.widget.dart';
 import 'package:mvp_proex/features/point/point.model.dart';
 import 'package:mvp_proex/features/point/point.widget.dart';
 import 'package:mvp_proex/features/point/point.repository.dart';
@@ -76,7 +73,6 @@ class SVGMap extends StatefulWidget {
   ///   ...
   /// ),
   /// ```
-  final PersonModel person;
 
   const SVGMap({
     Key? key,
@@ -84,7 +80,6 @@ class SVGMap extends StatefulWidget {
     required this.svgWidth,
     required this.svgHeight,
     this.svgScale = 1,
-    required this.person,
   }) : super(key: key);
 
   @override
@@ -95,8 +90,9 @@ class _SVGMapState extends State<SVGMap> {
   bool isAdmin = false;
   bool isLine = true;
 
-  double? top, x;
-  double? left, y;
+  double? x, y;
+  double top = 0, left = 0;
+  //top e left não precisam mais ser futuros porque agora não são inicializados no centro da pessoa, o mapa é iniciado com 0 de offset.
 
   late double scaleFactor;
 
@@ -104,9 +100,6 @@ class _SVGMapState extends State<SVGMap> {
   bool flagDuration = false;
 
   late final Widget svg;
-
-  late double objetivoX;
-  late double objetivoY;
 
   //só enquanto tivermos apenas esse mapa, depois que tiver uma tela pra escolher o mapa teremos que mudar
   late String reitoriaId = "7aae38c8-1ac5-4c52-bd5d-648a8625209d";
@@ -122,12 +115,16 @@ class _SVGMapState extends State<SVGMap> {
   final PdfInvoiceService service = PdfInvoiceService();
 
   void centralizar(bool flagScale) {
+    // TODO: mudar para pegar as coordenadas do ponto anterior
     setState(() {
       flagDuration = flagScale;
-      top = ((widget.person.y - MediaQuery.of(context).size.height / 2) +
+      // top = ((widget.person.y - MediaQuery.of(context).size.height / 2) +
+      //         2 * AppBar().preferredSize.height) * -1;
+      // left = (widget.person.x - MediaQuery.of(context).size.width / 2) * -1;
+      top = ((MediaQuery.of(context).size.height / 2) +
               2 * AppBar().preferredSize.height) *
           -1;
-      left = (widget.person.x - MediaQuery.of(context).size.width / 2) * -1;
+      left = (MediaQuery.of(context).size.width / 2) * -1;
     });
   }
 
@@ -226,12 +223,6 @@ class _SVGMapState extends State<SVGMap> {
 
   @override
   Widget build(BuildContext context) {
-    if (left == null && top == null) {
-      top = ((widget.person.y - MediaQuery.of(context).size.height / 2) +
-              AppBar().preferredSize.height) *
-          -1;
-      left = (widget.person.x - MediaQuery.of(context).size.width / 2) * -1;
-    }
     return StreamBuilder<Object>(
       stream: _strcontroller.stream,
       builder: (context, snapshot) {
@@ -256,7 +247,7 @@ class _SVGMapState extends State<SVGMap> {
               actions: [
                 TextButton(
                     onPressed: () {
-                      print("Voltar para página anterior");
+                      print("Criar função para voltar para página anterior");
                     },
                     child: const Text("Voltar")),
                 TextButton(
@@ -385,19 +376,8 @@ class _SVGMapState extends State<SVGMap> {
                             setState(
                               () {
                                 flagDuration = false;
-                                top = top! + details.delta.dy;
-                                left = left! + details.delta.dx;
-                              },
-                            );
-                          },
-                          onLongPressEnd: (details) {
-                            setState(
-                              () {
-                                objetivoX = details.localPosition.dx;
-                                objetivoY = details.localPosition.dy;
-
-                                widget.person.setx = objetivoX;
-                                widget.person.sety = objetivoY;
+                                top = top + details.delta.dy;
+                                left = left + details.delta.dx;
                               },
                             );
                           },
@@ -446,9 +426,6 @@ class _SVGMapState extends State<SVGMap> {
                                         ),
                                       )
                                       .toList(),
-                                PersonWidget(
-                                  person: widget.person,
-                                ),
                                 if (isAdmin && isLine)
                                   ...pointValidWidget(
                                     x: x ?? 0,
@@ -457,7 +434,7 @@ class _SVGMapState extends State<SVGMap> {
                                     height: widget.svgHeight,
                                     isValidX: isValidX,
                                     isValidY: isValidY,
-                                    lastPoint: pontoAnterior,
+                                    // lastPoint: pontoAnterior,
                                   ),
                               ],
                             ),
