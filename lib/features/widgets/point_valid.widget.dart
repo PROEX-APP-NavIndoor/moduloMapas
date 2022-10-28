@@ -8,7 +8,7 @@ List<Positioned> pointValidWidget({
   required double height,
   required isValidX,
   required isValidY,
-  PointModel? lastPoint,
+  // PointModel? lastPoint, // Pra que estava sendo usado isso?
 }) {
   return [
     Positioned(
@@ -18,9 +18,7 @@ List<Positioned> pointValidWidget({
         width: width,
         height: 1,
         decoration: BoxDecoration(
-          color: lastPoint == null
-              ? Colors.green
-              : isValidY
+          color: isValidY
                   ? Colors.green
                   : Colors.red,
           borderRadius: BorderRadius.circular(5),
@@ -34,9 +32,7 @@ List<Positioned> pointValidWidget({
         width: 1,
         height: height,
         decoration: BoxDecoration(
-          color: lastPoint == null
-              ? Colors.green
-              : isValidX
+          color: isValidX
                   ? Colors.green
                   : Colors.red,
           borderRadius: BorderRadius.circular(5),

@@ -35,23 +35,19 @@ dependencies:
   # Map and SVG
   flutter_map: ^0.14.0
   flutter_svg: ^0.23.0+1
-  latlng: ^0.1.0
-  latlong2: ^0.8.1
-  geolocator: ^7.7.1
-  dijkstra: ^0.0.2
-  shared_preferences: ^2.0.7
   # QR viewer and saver
   qr_flutter: ^4.0.0
   permission_handler: ^10.0.0
-  gallery_saver: ^2.3.2
   path_provider: ^2.0.11
   # PDF generation
   pdf: ^3.0.6
   open_document: ^1.0.3
   # Backend integration
-  rx_notifier: ^1.1.0
   dio: ^4.0.0
-  provider: ^5.0.0
+  # Data and State management
+  shared_preferences: ^2.0.7
+  provider: ^6.0.0
+  rx_notifier: ^1.1.0
   # firebase_core:
   # cloud_firestore: ^2.2.1
   # firebase_storage: ^8.1.3

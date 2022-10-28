@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:dijkstra/dijkstra.dart';
 import 'package:mvp_proex/features/point/point.repository.dart';
 import 'package:mvp_proex/features/widgets/dialog_qrcode.widget.dart';
 import 'package:mvp_proex/features/point/point.model.dart';
@@ -94,80 +93,6 @@ Future dialogEditPoint(
               "Usar como anterior",
               style: TextStyle(color: Colors.green),
             ),
-          ),
-          TextButton(
-            child: const Text(
-              "Objetivo",
-              style: TextStyle(color: Colors.deepPurple),
-            ),
-            onPressed: () async {
-              // Teste com grafo em mapa de strings
-              // /*
-              Map newGraph = {
-                "id1": {"id2": 1},
-                "id2": {"id1": 1, "id4": 1},
-                "id4": {"id2": 1},
-              };
-
-              List resultado =
-                  Dijkstra.findPathFromGraph(newGraph, "id4", "id1");
-              print(resultado);
-              // */
-
-              // // TODO: Caminho melhor
-              // fechar pop up
-              Navigator.pop(context);
-
-              //onde estou
-              int here = 0;
-
-              for (var element in points) {
-                if (element.x == widget.person.x &&
-                    element.y == widget.person.y) {
-                  here = element.id;
-                }
-              }
-
-              // lista do caminho a ser seguido
-              List tracker = Dijkstra.findPathFromGraph(graph, here, point.id);
-
-              tracker.removeAt(0);
-
-              for (var i = 0; i < tracker.length; i++) {
-                widget.person.setx =
-                    points.firstWhere((element) => element.id == tracker[i]).x;
-                widget.person.sety =
-                    points.firstWhere((element) => element.id == tracker[i]).y;
-                inicio = tracker[i];
-                await Future.delayed(const Duration(seconds: 3));
-                centralizar(true);
-              }
-
-              // pegando o ponto inicial
-              // Map pointInit = points
-              //     .where((element) =>
-              //         element["x"] == widget.person.x &&
-              //         element["y"] == widget.person.y)
-              //     .first;
-
-              // // traçar o caminho, caso o caminho seja de volta
-              // while (pointInit["id"] != point["id"]) {
-              //   tracker.add(point);
-              //   point = points.where((element) => element["id"] == point["prev"]).first;
-              // }
-
-              // tracker = tracker.reversed.toList();
-
-              // print(tracker);
-
-              // for (var i = 0; i < tracker.length; i++) {
-              //   widget.person.setx = tracker[i]["x"];
-              //   widget.person.sety = tracker[i]["y"];
-              //   inicio = tracker[i]["id"];
-              //   await Future.delayed(const Duration(seconds: 2));
-              //   centralizar(true);
-              // }
-            },
           ),
         ],
       );
