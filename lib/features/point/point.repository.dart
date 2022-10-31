@@ -4,10 +4,16 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mvp_proex/app/app.repository.dart';
 import 'package:mvp_proex/features/point/point.model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+/// Classe utilizada para a comunicação com o banco referente às ações de ponto.
+/// 
+/// O token utilizado está sendo passado por SHARED PREFERENCES, caso seja necessário basta mudar aqui para PROVIDER
 class PointRepository extends AppRepository {
-  // pega todos os pontos do banco
-  Future getAllPoints(String token) async {
+  /// Pega todos os pontos do banco
+  Future getAllPoints() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.getString("token") ?? "";
     const String erroMessage = "Erro na consulta";
     try {
       if (kDebugMode) {
@@ -30,8 +36,10 @@ class PointRepository extends AppRepository {
     }
   }
 
-  // salva um ponto
-  Future postPoint(String token, PointModel point) async {
+  /// Salva um ponto no banco
+  Future postPoint(PointModel point) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.getString("token") ?? "";
     try {
       if (kDebugMode) {
         print("Post point...");
@@ -48,13 +56,17 @@ class PointRepository extends AppRepository {
         return res.toString();
       });
     } on DioError {
-      print("ERRO no post");
+      if (kDebugMode) {
+        print("ERRO no post");
+      }
       rethrow;
     }
   }
 
-  // pega todos os pontos de um mapa
-  Future getMapPoints(String token, String mapID) async {
+  /// Pega todos os pontos de um mapa
+  Future getMapPoints(String mapID) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.getString("token") ?? "";
     try {
       if (kDebugMode) {
         print("Get map points...");
@@ -81,7 +93,10 @@ class PointRepository extends AppRepository {
 
   // O json é recebido como string, mas quando dá decode, ele vira um mapa, então quando dá json.decode(res.toString()), temos um mapa onde a chave 'points' tem como valor um vetor de mapas. No PointModel.fromJson não se usa um tipo "Json" (isso não existe), se usa um mapa; portanto pegar só o ['points'] é exatamente o que precisa para transformar cada mapa dentro desse vetor em um PointModel
 
-  Future editPoint(String token, PointModel point) async {
+  /// Edita um ponto no banco
+  Future editPoint(PointModel point) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.getString("token") ?? "";
     const String erroMessage = "Erro na consulta";
     try {
       if (kDebugMode) {
@@ -102,11 +117,17 @@ class PointRepository extends AppRepository {
         },
       );
     } catch (e) {
+      if (kDebugMode) {
+        print("ERRO em editPoint");
+      }
       return erroMessage;
     }
   }
 
-  Future deletePoint(String token, String pointId) async {
+  /// Deleta um ponto no banco
+  Future deletePoint(String pointId) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.getString("token") ?? "";
     const String erroMessage = "Erro na consulta";
     try {
       if (kDebugMode) {
@@ -125,6 +146,9 @@ class PointRepository extends AppRepository {
         },
       );
     } catch (e) {
+      if (kDebugMode) {
+        print("ERRO em deletePoint");
+      }
       return erroMessage;
     }
   }

@@ -1,10 +1,9 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:mvp_proex/app/app.constant.dart';
 import 'package:mvp_proex/features/point/point.model.dart';
+import 'package:mvp_proex/features/point/point_child.model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // Um vetor de mapas é mapeado para um vetor de pointWidgets
@@ -14,7 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 // Depois se mapeia então os pointModels para PointWidgets
 
 class PointWidget extends StatefulWidget {
-  final PointModel point;
+  final point;
   final double side;
   final Function()? onPressed;
   const PointWidget(
@@ -43,7 +42,7 @@ class _PointWidgetState extends State<PointWidget> {
             pointModelFromJson(prefs?.getString("pontoAnterior") ?? "");
       });
 
-      if (widget.point.breakPoint) {
+      if (widget.point is PointChild) {
         return Colors.green;
       } else if (widget.point.uuid == pontoAnterior?.uuid) {
         return Colors.yellow;

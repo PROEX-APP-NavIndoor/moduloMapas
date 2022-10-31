@@ -6,6 +6,15 @@ PointModel pointModelFromJson(String str) =>
 String pointModelToJson(PointModel data) => json.encode(data.toJson());
 
 class PointModel {
+  String uuid="";
+  int id=0;
+  String name="";
+  String description="";
+  double x=0.0;
+  double y=0.0;
+  int floor=0;
+  String mapId="";
+
   PointModel(
       {this.uuid = "",
       this.id = 0,
@@ -14,32 +23,17 @@ class PointModel {
       this.x = 0.0,
       this.y = 0.0,
       this.floor = 1,
-      this.breakPoint = false,
-      this.neighbor = const {},
       this.mapId = ""});
 
-  String uuid;
-  int id;
-  String name;
-  String description;
-  double x;
-  double y;
-  int floor;
-  bool breakPoint;
-  Map<String, dynamic> neighbor;
-  String mapId;
-
-  factory PointModel.fromJson(Map<String, dynamic> json) => PointModel(
-        uuid: json["id"] ?? "",
-        name: json["name"],
-        description: json["description"],
-        x: json["x"].toDouble(),
-        y: json["y"].toDouble(),
-        floor: json["floor"],
-        breakPoint: json["breakPoint"],
-        neighbor: json["neighbor"] ?? {},
-        mapId: json["map_id"],
-      );
+  PointModel.fromJson(Map<String, dynamic> json) {
+    uuid = json["id"] ?? "";
+    name = json["name"];
+    description = json["description"];
+    x = json["x"].toDouble();
+    y = json["y"].toDouble();
+    floor = json["floor"];
+    mapId = json["map_id"];
+  }
 
   Map<String, dynamic> toJson() => {
         "id": uuid,
@@ -48,8 +42,6 @@ class PointModel {
         "floor": floor,
         "x": x,
         "y": y,
-        "breakPoint": breakPoint,
-        "neighbor": neighbor,
         "map_id": mapId,
       };
 }

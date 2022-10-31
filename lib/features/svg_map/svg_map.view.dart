@@ -105,26 +105,25 @@ class _SVGMapState extends State<SVGMap> {
   late String reitoriaId = "7aae38c8-1ac5-4c52-bd5d-648a8625209d";
   late String blocoC11Id = "c5e47fab-0a29-4d79-be62-ae3320629dbd";
 
-  String prev = "";
-  late PointModel pontoAnterior;
   int id = 0;
-  int inicio = 0;
+  late PointModel pontoAnterior;
   List<PointModel> newPointList = [];
-  Map graph = {};
 
   final PdfInvoiceService service = PdfInvoiceService();
 
   void centralizar(bool flagScale) {
-    // TODO: mudar para pegar as coordenadas do ponto anterior
     setState(() {
       flagDuration = flagScale;
-      // top = ((widget.person.y - MediaQuery.of(context).size.height / 2) +
-      //         2 * AppBar().preferredSize.height) * -1;
-      // left = (widget.person.x - MediaQuery.of(context).size.width / 2) * -1;
-      top = ((MediaQuery.of(context).size.height / 2) +
-              2 * AppBar().preferredSize.height) *
-          -1;
-      left = (MediaQuery.of(context).size.width / 2) * -1;
+      // if (pontoAnterior != null) {
+        top = ((pontoAnterior.y - MediaQuery.of(context).size.height / 2) +
+                2 * AppBar().preferredSize.height) * -1;
+        left = (pontoAnterior.x - MediaQuery.of(context).size.width / 2) * -1;
+      // } else {
+      //   top = ((MediaQuery.of(context).size.height / 2) +
+      //           2 * AppBar().preferredSize.height) *
+      //       -1;
+      //   left = (MediaQuery.of(context).size.width / 2) * -1;
+      // }
     });
   }
 
@@ -135,10 +134,8 @@ class _SVGMapState extends State<SVGMap> {
   String erroDetalhe = "ERRO INESPERADO";
 
   // Realiza o login automaticamente para testes, na versão final tem que passar pela tela de login antes de entrar na tela de mapas
-  String tempToken = "";
   UserModel tempModel =
       UserModel(email: "gabriel@gmail.com", password: "123456");
-  LoginRepository tempLogin = LoginRepository();
 
   StreamController<String> _strcontroller = StreamController<String>();
   Future fetchMapPoints() async {
@@ -149,11 +146,11 @@ class _SVGMapState extends State<SVGMap> {
       onListen: () async {
         SharedPreferences prefs;
         try {
-          await tempLogin.postToken(model: tempModel).then(
-                (res) async => {
-                  tempToken = res,
+          await LoginRepository().postToken(model: tempModel).then(
+                (tokenRes) async => {
                   prefs = await SharedPreferences.getInstance(),
-                  await allPoints.getMapPoints(tempToken, blocoC11Id).then(
+                  prefs.setString("token", tokenRes),
+                  await allPoints.getMapPoints(blocoC11Id).then(
                         (res) => {
                           for (var cada in res)
                             {
@@ -220,7 +217,6 @@ class _SVGMapState extends State<SVGMap> {
       color: Colors.white,
       fit: BoxFit.none,
     );
-    graph[0] = {};
     super.initState();
   }
 
@@ -386,9 +382,7 @@ class _SVGMapState extends State<SVGMap> {
                           },
                           onTapDown: (details) {
                             if (isAdmin && isValid && isLine) {
-                              SharedPreferences prefs;
-                              dialogPointWidget(context, details, id,
-                                      newPointList, graph, tempToken)
+                              dialogPointWidget(context, details, id)
                                   .then((point) => {
                                         if (point != null)
                                           {
@@ -417,12 +411,9 @@ class _SVGMapState extends State<SVGMap> {
                                                       context,
                                                       e,
                                                       id,
-                                                      tempToken,
-                                                      inicio,
                                                       centralizar,
                                                       widget,
-                                                      newPointList,
-                                                      graph)
+                                                      newPointList)
                                                   .whenComplete(
                                                 () {
                                                   SharedPreferences

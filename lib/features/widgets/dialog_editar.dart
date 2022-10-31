@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mvp_proex/app/app.constant.dart';
+import 'package:mvp_proex/features/point/point.model.dart';
 import 'package:mvp_proex/features/point/point.repository.dart';
 
 Future dialogEditar(
   BuildContext context,
-  var point,
+  PointModel point,
 ) {
   return showDialog(
       context: context,
       builder: (context) {
-        String token =
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Inlnb3JAdW5pZmVpLmJyIiwiaWF0IjoxNjYxOTk1MzYyLCJleHAiOjE2NjIwODE3NjIsInN1YiI6ImM5N2Y1ZmYxLTBjZWYtNDdjOS1iZjBlLWU4YWU4NzdjYTk4ZiJ9.O49n56mID96cu2vY2ig-6AIL1NuL6lIYDcaO41g0LLA";
-        TypePoint type = TypePoint.path;
+        TypePoint type = TypePoint.common;
         String name = point.name;
         String descricao = point.description;
         return AlertDialog(
@@ -24,21 +23,21 @@ Future dialogEditar(
                   value: type,
                   items: const [
                     DropdownMenuItem(
-                      child: Text("Objetivo"),
-                      value: TypePoint.goal,
+                      child: Text("Intermediário"),
+                      value: TypePoint.intermediary,
                     ),
                     DropdownMenuItem(
                       child: Text("Caminho"),
-                      value: TypePoint.path,
+                      value: TypePoint.common,
                     ),
                   ],
                   onChanged: (value) {
-                    if (value != TypePoint.goal) {
+                    if (value != TypePoint.intermediary) {
                       name = "Caminho";
-                      type = TypePoint.path;
+                      type = TypePoint.common;
                     } else {
-                      name = "Objetivo";
-                      type = TypePoint.goal;
+                      name = "Intermediário";
+                      type = TypePoint.intermediary;
                     }
                   },
                 ),
@@ -90,7 +89,7 @@ Future dialogEditar(
                   point.name = name;
                   point.description = descricao;
                   PointRepository tempo = PointRepository();
-                  tempo.editPoint(token, point);
+                  tempo.editPoint(point);
 
                   Navigator.pop(context);
                 },

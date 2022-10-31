@@ -1,8 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mvp_proex/app/app.constant.dart';
 import 'dart:convert';
 import 'package:mvp_proex/features/point/point.repository.dart';
+import 'package:mvp_proex/features/point/point_parent.model.dart';
 import 'package:mvp_proex/features/widgets/shared/snackbar.message.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mvp_proex/features/point/point.model.dart';
@@ -11,14 +13,12 @@ Future dialogPointWidget(
   BuildContext context,
   var details,
   int id,
-  List<PointModel> points,
-  var graph,
-  String token,
 ) {
+  // Essa adição é apenas de pontos pai
   return showDialog(
     context: context,
     builder: (context) {
-      bool breakPoint = false;
+      bool intermediary = false;
       String name = "Caminho";
       String descricao = "Descrição";
       return AlertDialog(
@@ -28,10 +28,10 @@ Future dialogPointWidget(
             Text(
                 "X = ${details.localPosition.dx}\nY = ${details.localPosition.dy}"),
             DropdownButtonFormField(
-              value: breakPoint,
+              value: intermediary,
               items: const [
                 DropdownMenuItem(
-                  child: Text("Objetivo"),
+                  child: Text("Intermediário"),
                   value: true,
                 ),
                 DropdownMenuItem(
@@ -42,10 +42,10 @@ Future dialogPointWidget(
               onChanged: (value) {
                 if (value != true) {
                   name = "Caminho";
-                  breakPoint = false;
+                  intermediary = false;
                 } else {
-                  name = "Objetivo";
-                  breakPoint = true;
+                  name = "Intermediário";
+                  intermediary = true;
                 }
               },
             ),
@@ -94,57 +94,57 @@ Future dialogPointWidget(
           ),
           TextButton(
               onPressed: () async {
-                //usando esse point model para que seja possível acessar os valores do ponto com o uuid desejado
-                late PointModel pontoAnterior;
-
-                /* Calcular o peso das distâncias com base na diferença das coordenadas */
+                // Calcular o peso das distâncias com base na diferença das coordenadas
                 SharedPreferences prefs = await SharedPreferences.getInstance();
 
-                pontoAnterior =
-                    pointModelFromJson(prefs.getString("pontoAnterior") ?? "");
-                //int prev = (prefs.getInt('prev') ?? 0);
-                // print(prev);
+                //usando esse point model para que seja possível acessar os valores do ponto com o uuid desejado
+                // como só pode ser adicionado pontos pai por aqui então sempre vai haver um vizinho, então esse ponto anterior sempre vai ser um PointParent
+                PointParent pontoAnterior =
+                    pointParentFromJson(prefs.getString("pontoAnterior") ?? "");
+
+                // O peso ainda é necessário?
                 int peso = ((details.localPosition.dx - pontoAnterior.x).abs() +
                         (details.localPosition.dy - pontoAnterior.y).abs())
                     .round();
                 print("peso = $peso");
                 print(details.localPosition.dx);
                 print(details.localPosition.dy);
-                //print(points[prev-1].x.abs());
-                //print(points[prev-1].y.abs());
 
-                PointModel point = PointModel();
+                PointParent point = PointParent();
 
                 point.x = details.localPosition.dx;
                 point.y = details.localPosition.dy;
                 point.description = descricao;
-                point.breakPoint = breakPoint;
+                point.type =
+                    intermediary ? TypePoint.intermediary : TypePoint.common;
                 point.name = name;
-                point.neighbor = {
-                  "prev": pontoAnterior.uuid,
-                }; //colocar o peso aqui
-                point.mapId = "c5e47fab-0a29-4d79-be62-ae3320629dbd";
-                // TODO: pegar o mapId do mapa atual
+                point.neighbors[0]["id"] =
+                    pontoAnterior.uuid; // verificar a orientação
+                point.mapId =
+                    "c5e47fab-0a29-4d79-be62-ae3320629dbd"; // TODO: pegar o mapId do mapa atual
                 // Esse mapId em teoria era pra existir no mapa aqui, mas tecnicamente ele não está registrado no banco, então não existe
+                //colocar o peso aqui?
 
                 PointRepository pRepository = PointRepository();
 
                 try {
                   await pRepository
-                      .postPoint(
-                          token, point) // TODO: receber o token pelo provider
+                      .postPoint(point)
                       .then((value) {
                     point.uuid = json.decode(value)["id"];
                     prefs.setString(
                       "pontoAnterior",
                       pointModelToJson(point),
                     );
-                    pontoAnterior.neighbor = {
-                      "prev": pontoAnterior.neighbor["prev"],
-                      "next": point.uuid
-                    };
-                    pRepository.editPoint(token, pontoAnterior).then((value) {
-                      print(pontoAnterior.neighbor);
+                    pontoAnterior.neighbors.add({"id": point.uuid});
+                    // pontoAnterior.neighbors = {
+                    //   "prev": pontoAnterior.neighbors[0]["id"],
+                    //   "next": point.uuid
+                    // };
+                    pRepository
+                        .editPoint(pontoAnterior)
+                        .then((value) {
+                      print(pontoAnterior.neighbors);
                       Navigator.pop(context, point);
                     });
                   });
