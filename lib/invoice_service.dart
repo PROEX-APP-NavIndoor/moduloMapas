@@ -1,12 +1,8 @@
 import 'dart:typed_data';
 import 'dart:io';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/widgets.dart';
-import 'package:flutter/material.dart' as material;
 import 'package:mvp_proex/features/point/point.model.dart';
 import 'package:open_document/open_document.dart';
 import 'package:path_provider/path_provider.dart';
-//import 'package:pdf_invoice_generator_flutter/model/product.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 

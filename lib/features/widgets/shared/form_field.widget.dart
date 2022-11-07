@@ -65,23 +65,23 @@ class _FormFieldWidgetState extends State<FormFieldWidget> {
             },
             autovalidateMode: widget.auto,
             decoration: InputDecoration(
-              focusedBorder: OutlineInputBorder(
+              focusedBorder: const OutlineInputBorder(
                   borderSide: BorderSide(
                     color: AppColors.primary,
                   ),
-                  borderRadius: const BorderRadius.all(Radius.circular(20.0))),
-              enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(20.0))),
+              enabledBorder: const OutlineInputBorder(
                   borderSide: BorderSide(
                     color: AppColors.primary,
                   ),
-                  borderRadius: const BorderRadius.all(Radius.circular(20.0))),
-              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(20.0))),
+              border: const OutlineInputBorder(
                   borderSide: BorderSide(
                     color: AppColors.primary,
                   ),
-                  borderRadius: const BorderRadius.all(Radius.circular(20.0))),
+                  borderRadius: BorderRadius.all(Radius.circular(20.0))),
               hintText: widget.description,
-              hintStyle: TextStyle(
+              hintStyle: const TextStyle(
                 color: AppColors.primary,
                 fontSize: 12,
                 fontWeight: FontWeight.w400,

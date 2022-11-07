@@ -12,7 +12,6 @@ import 'package:mvp_proex/features/point/point.model.dart';
 Future dialogPointWidget(
   BuildContext context,
   var details,
-  int id,
 ) {
   // Essa adição é apenas de pontos pai
   return showDialog(
@@ -22,7 +21,7 @@ Future dialogPointWidget(
       String name = "Caminho";
       String descricao = "Descrição";
       return AlertDialog(
-        title: Text("Adicionar ponto $id"),
+        title: const Text("Adicionar ponto"),
         content: Column(
           children: [
             Text(
@@ -58,7 +57,7 @@ Future dialogPointWidget(
               ),
               onChanged: (value) {
                 if (value.isEmpty) {
-                  name = "Ponto $id";
+                  name = "Ponto";
                 } else {
                   name = value;
                 }
@@ -92,6 +91,7 @@ Future dialogPointWidget(
               style: TextStyle(color: Colors.redAccent),
             ),
           ),
+          // ADICIONAR
           TextButton(
               onPressed: () async {
                 // Calcular o peso das distâncias com base na diferença das coordenadas

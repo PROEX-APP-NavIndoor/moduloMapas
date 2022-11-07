@@ -1,8 +1,12 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mvp_proex/app/app.constant.dart';
 import 'package:mvp_proex/features/point/point.model.dart';
 import 'package:mvp_proex/features/point/point.repository.dart';
+import 'package:mvp_proex/features/point/point_child.model.dart';
+import 'package:mvp_proex/features/point/point_parent.model.dart';
+import 'package:mvp_proex/features/widgets/shared/snackbar.message.dart';
 
 Future dialogEditar(
   BuildContext context,
@@ -15,7 +19,7 @@ Future dialogEditar(
         String name = point.name;
         String descricao = point.description;
         return AlertDialog(
-            title: Text("Adicionar ponto ${point.id}"),
+            title: const Text("Editar ponto"),
             content: Column(
               children: [
                 Text("X = ${point.x}\nY = ${point.y}"),
@@ -50,7 +54,7 @@ Future dialogEditar(
                   ),
                   onChanged: (value) {
                     if (value.isEmpty) {
-                      name = "Ponto ${point.id}";
+                      name = "Ponto";
                     } else {
                       name = value;
                     }
@@ -85,13 +89,19 @@ Future dialogEditar(
                 ),
               ),
               TextButton(
-                onPressed: () {
+                onPressed: () async {
                   point.name = name;
                   point.description = descricao;
-                  PointRepository tempo = PointRepository();
-                  tempo.editPoint(point);
-
-                  Navigator.pop(context);
+                  print(point is PointParent?);
+                  print("\n");
+                  print(point is PointChild?);
+                  print("\n--");
+                  try {
+                    await PointRepository().editPoint(point);
+                    Navigator.pop(context);
+                  } on DioError catch (e) {
+                    showMessageError(context: context, text: e.message);
+                  }
                 },
                 child: const Text(
                   "Salvar",

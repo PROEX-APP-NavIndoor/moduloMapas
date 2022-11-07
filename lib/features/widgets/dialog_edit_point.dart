@@ -7,16 +7,15 @@ import 'package:mvp_proex/features/widgets/dialog_qrcode.widget.dart';
 import 'package:mvp_proex/features/point/point.model.dart';
 import 'package:mvp_proex/features/widgets/shared/snackbar.message.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'dialog_editar.dart';
+
+// aqui seria interessante usar o state management, para não pedir para apagar o ponto várias vezes - o mesmo para o diálogo de editar
 
 Future dialogEditPoint(
   BuildContext context,
-  var point,
-  int id,
+  dynamic point,
   Function centralizar,
-  var widget,
-  List<PointModel> points,
+  List<dynamic> points,
 ) {
   return showDialog(
     context: context,
@@ -31,6 +30,7 @@ Future dialogEditPoint(
           ]),
         ),
         actions: [
+          // CANCELAR:
           TextButton(
             onPressed: () {
               Navigator.pop(context);
@@ -40,10 +40,9 @@ Future dialogEditPoint(
               style: TextStyle(color: Colors.redAccent),
             ),
           ),
+          // REMOVER PONTO:
           TextButton(
             onPressed: () async {
-              //TODO: Testar se está dando certo
-
               // ao remover um ponto, tirar a referência à ele em qualquer ponto que tenha ele como vizinho, e remover os filhos, atualizar esses pontos no banco, e então remover esse ponto do banco
               PointRepository pRepository = PointRepository();
               try {
@@ -58,37 +57,42 @@ Future dialogEditPoint(
                         // então remova a referência do meu ponto nele e atualiza o banco
                         individualPoint.neighbors
                             .removeWhere((item) => item["id"] == point.uuid);
-                        pRepository.editPoint(individualPoint);
+                        await pRepository.editPoint(individualPoint);
                         break;
                       }
                     }
                   }
                   // pra cada filho que esse ponto tiver, apaga ele no banco
                   for (PointChild individualPoint in point.children) {
-                    pRepository.deletePoint(individualPoint.uuid);
+                    await pRepository.deletePoint(
+                        "child", individualPoint.uuid);
                   }
                 } else if (point is PointChild) {
-                  // se não é Parent então é Children, só precisa remover a referência do pai
+                  // se não é Parent então é Child, só precisa remover a referência do pai
                   for (PointModel individualPoint in points) {
                     if (individualPoint is PointParent) {
                       if (individualPoint.uuid == point.parentId) {
                         individualPoint.children.remove(point);
-                        pRepository.editPoint(individualPoint);
+                        await pRepository.editPoint(individualPoint);
                         break;
                       }
                     }
                   }
                 }
 
-                points.remove(point);
-                PointRepository().deletePoint(point.uuid);
+                if (point is PointParent) {
+                  // await PointRepository().deletePoint("parent", point.uuid);
+                  print("entrou aqui no pai");
+                } else {
+                  // await PointRepository().deletePoint("parent", point.uuid);
+                  print(point);
+                  print("entrou aqui no filho");
+                }
+                // points.remove(point);
 
                 Navigator.pop(context);
               } on DioError catch (e) {
-                //TODO: arrumar mensagem de erro
-                showMessageError(
-                    context: context,
-                    text: e.message + e.response?.data['message']);
+                showMessageError(context: context, text: e.message);
               }
             },
             child: const Text(
@@ -96,8 +100,13 @@ Future dialogEditPoint(
               style: TextStyle(color: Colors.redAccent),
             ),
           ),
+          // EDITAR PONTO:
           TextButton(
             onPressed: () {
+              print(point is PointParent?);
+              print("\n");
+              print(point is PointChild?);
+              print("\n----");
               dialogEditar(context, point);
             },
             child: const Text(
@@ -105,6 +114,7 @@ Future dialogEditPoint(
               style: TextStyle(color: Colors.redAccent),
             ),
           ),
+          // GERAR QR CODE:
           TextButton(
             onPressed: () {
               qrDialog(context, point);
@@ -114,6 +124,7 @@ Future dialogEditPoint(
               style: TextStyle(color: Colors.green),
             ),
           ),
+          // USAR COMO ANTERIOR:
           TextButton(
             onPressed: () {
               SharedPreferences? prefs;
@@ -133,6 +144,12 @@ Future dialogEditPoint(
               "Usar como anterior",
               style: TextStyle(color: Colors.green),
             ),
+          ),
+          TextButton(
+            onPressed: () {
+              // Deveria voltar à tela do mapa mas agora com a opção de adicionar o ponto filho, que é independente dos 90º
+            },
+            child: const Text("Adicionar destino"),
           ),
         ],
       );

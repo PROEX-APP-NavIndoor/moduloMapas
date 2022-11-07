@@ -2,15 +2,18 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:mvp_proex/app/app.constant.dart';
 import 'package:mvp_proex/app/app.repository.dart';
 import 'package:mvp_proex/features/point/point.model.dart';
+import 'package:mvp_proex/features/point/point_child.model.dart';
+import 'package:mvp_proex/features/point/point_parent.model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Classe utilizada para a comunicação com o banco referente às ações de ponto.
-/// 
-/// O token utilizado está sendo passado por SHARED PREFERENCES, caso seja necessário basta mudar aqui para PROVIDER
+///
+/// O token utilizado está sendo passado por SHARED PREFERENCES, caso seja necessário basta mudar aqui para PROVIDER.
 class PointRepository extends AppRepository {
-  /// Pega todos os pontos do banco
+  /// Pega todos os pontos do banco.
   Future getAllPoints() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String token = prefs.getString("token") ?? "";
@@ -36,7 +39,7 @@ class PointRepository extends AppRepository {
     }
   }
 
-  /// Salva um ponto no banco
+  /// Salva um ponto no banco.
   Future postPoint(PointModel point) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String token = prefs.getString("token") ?? "";
@@ -63,7 +66,7 @@ class PointRepository extends AppRepository {
     }
   }
 
-  /// Pega todos os pontos de um mapa
+  /// Pega todos os pontos de um mapa.
   Future getMapPoints(String mapID) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String token = prefs.getString("token") ?? "";
@@ -91,20 +94,25 @@ class PointRepository extends AppRepository {
     }
   }
 
-  // O json é recebido como string, mas quando dá decode, ele vira um mapa, então quando dá json.decode(res.toString()), temos um mapa onde a chave 'points' tem como valor um vetor de mapas. No PointModel.fromJson não se usa um tipo "Json" (isso não existe), se usa um mapa; portanto pegar só o ['points'] é exatamente o que precisa para transformar cada mapa dentro desse vetor em um PointModel
-
-  /// Edita um ponto no banco
+  /// Edita um ponto no banco.
   Future editPoint(PointModel point) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String token = prefs.getString("token") ?? "";
-    const String erroMessage = "Erro na consulta";
     try {
       if (kDebugMode) {
         print("Edit point...");
       }
+      print(point is PointParent);
+      print("\n");
+      print(point is PointChild);
       return await dio
           .put(
-        AppRepository.path + AppRepository.queryPoints + "/" + point.uuid,
+        AppRepository.path +
+            AppRepository.queryPoints +
+            "/" +
+            (point is PointParent ? "parent" : "child") +
+            "/" +
+            point.uuid,
         options: Options(
             headers: {"Authorization": "Bearer $token"},
             responseType: ResponseType.plain),
@@ -116,26 +124,34 @@ class PointRepository extends AppRepository {
           return res.toString();
         },
       );
-    } catch (e) {
+    } on DioError {
       if (kDebugMode) {
         print("ERRO em editPoint");
       }
-      return erroMessage;
+      rethrow;
     }
   }
 
-  /// Deleta um ponto no banco
-  Future deletePoint(String pointId) async {
+  /// Deleta um ponto no banco.
+  ///
+  /// [pointClass] é o tipo do ponto, necessário para a rota; **deve ser _parent_ ou _child_**.
+  ///
+  /// [pointId] é o id do ponto a ser deletado.
+  Future deletePoint(String pointClass, String pointId) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String token = prefs.getString("token") ?? "";
-    const String erroMessage = "Erro na consulta";
     try {
       if (kDebugMode) {
         print("Delete point...");
       }
       return await dio
           .delete(
-        AppRepository.path + AppRepository.queryPoints + "/" + pointId,
+        AppRepository.path +
+            AppRepository.queryPoints +
+            "/" +
+            pointClass +
+            "/" +
+            pointId,
         options: Options(
             headers: {"Authorization": "Bearer $token"},
             responseType: ResponseType.plain),
@@ -145,11 +161,11 @@ class PointRepository extends AppRepository {
           return res.toString();
         },
       );
-    } catch (e) {
+    } on DioError {
       if (kDebugMode) {
         print("ERRO em deletePoint");
       }
-      return erroMessage;
+      rethrow;
     }
   }
 }

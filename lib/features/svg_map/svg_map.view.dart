@@ -5,6 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'package:flutter_svg/svg.dart';
+import 'package:mvp_proex/features/point/point_child.model.dart';
+import 'package:mvp_proex/features/point/point_parent.model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mvp_proex/features/login/login.repository.dart';
 import 'package:mvp_proex/features/user/user.model.dart';
@@ -105,7 +107,6 @@ class _SVGMapState extends State<SVGMap> {
   late String reitoriaId = "7aae38c8-1ac5-4c52-bd5d-648a8625209d";
   late String blocoC11Id = "c5e47fab-0a29-4d79-be62-ae3320629dbd";
 
-  int id = 0;
   late PointModel pontoAnterior;
   List<PointModel> newPointList = [];
 
@@ -115,9 +116,10 @@ class _SVGMapState extends State<SVGMap> {
     setState(() {
       flagDuration = flagScale;
       // if (pontoAnterior != null) {
-        top = ((pontoAnterior.y - MediaQuery.of(context).size.height / 2) +
-                2 * AppBar().preferredSize.height) * -1;
-        left = (pontoAnterior.x - MediaQuery.of(context).size.width / 2) * -1;
+      top = ((pontoAnterior.y - MediaQuery.of(context).size.height / 2) +
+              2 * AppBar().preferredSize.height) *
+          -1;
+      left = (pontoAnterior.x - MediaQuery.of(context).size.width / 2) * -1;
       // } else {
       //   top = ((MediaQuery.of(context).size.height / 2) +
       //           2 * AppBar().preferredSize.height) *
@@ -140,9 +142,9 @@ class _SVGMapState extends State<SVGMap> {
   StreamController<String> _strcontroller = StreamController<String>();
   Future fetchMapPoints() async {
     _strcontroller = StreamController<String>(
-      onPause: () => print('Paused'),
-      onResume: () => print('Resumed'),
-      onCancel: () => print('Cancelled'),
+      onPause: () => debugPrint('Paused'),
+      onResume: () => debugPrint('Resumed'),
+      onCancel: () => debugPrint('Cancelled'),
       onListen: () async {
         SharedPreferences prefs;
         try {
@@ -154,9 +156,11 @@ class _SVGMapState extends State<SVGMap> {
                         (res) => {
                           for (var cada in res)
                             {
-                              newPointList.add(PointModel.fromJson(cada)),
+                              if (cada["neighbor"] != null)
+                                {newPointList.add(PointParent.fromJson(cada))}
+                              else
+                                {newPointList.add(PointChild.fromJson(cada))}
                             },
-                          id = newPointList.length,
                           // TODO: tratar quando não houver pontos no mapa (quando id == 0)
                           prefs.setString(
                             "pontoAnterior",
@@ -190,7 +194,11 @@ class _SVGMapState extends State<SVGMap> {
               erroMessage = "Erro desconhecido (" +
                   e.response!.statusCode.toString() +
                   ") - contate o suporte";
-              erroDetalhe = e.response?.data["message"];
+              if (e.response!.data is! String) {
+                erroDetalhe = e.response!.data["message"];
+              } else {
+                erroDetalhe = e.response!.data!;
+              }
               break;
           }
           _strcontroller.addError(erroMessage);
@@ -225,9 +233,9 @@ class _SVGMapState extends State<SVGMap> {
     return StreamBuilder<Object>(
       stream: _strcontroller.stream,
       builder: (context, snapshot) {
-        Widget child;
+        Widget childVar;
         if (snapshot.hasError) {
-          child = Scaffold(
+          childVar = Scaffold(
             body: AlertDialog(
               title: const Text("Erro de conexão"),
               content: SingleChildScrollView(
@@ -262,7 +270,7 @@ class _SVGMapState extends State<SVGMap> {
             ),
           );
         } else if (snapshot.connectionState != ConnectionState.done) {
-          child = Center(
+          childVar = Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: const [
@@ -292,7 +300,7 @@ class _SVGMapState extends State<SVGMap> {
 
           bool isValid = isValidX || isValidY;
 
-          child = Scaffold(
+          childVar = Scaffold(
             appBar: CustomAppBar(
               height: 100,
               child: Stack(
@@ -382,7 +390,7 @@ class _SVGMapState extends State<SVGMap> {
                           },
                           onTapDown: (details) {
                             if (isAdmin && isValid && isLine) {
-                              dialogPointWidget(context, details, id)
+                              dialogPointWidget(context, details)
                                   .then((point) => {
                                         if (point != null)
                                           {
@@ -406,14 +414,13 @@ class _SVGMapState extends State<SVGMap> {
                                           side: 5,
                                           onPressed: () {
                                             if (isAdmin) {
+                                              print("Antes de entrar");
+                                              print(e is PointParent);
+                                              print(e is PointChild);
+                                              print(e is PointModel);
                                               //somente desktop
-                                              dialogEditPoint(
-                                                      context,
-                                                      e,
-                                                      id,
-                                                      centralizar,
-                                                      widget,
-                                                      newPointList)
+                                              dialogEditPoint(context, e,
+                                                      centralizar, newPointList)
                                                   .whenComplete(
                                                 () {
                                                   SharedPreferences
@@ -557,7 +564,7 @@ class _SVGMapState extends State<SVGMap> {
             ),
           );
         }
-        return child;
+        return childVar;
       },
     );
   }

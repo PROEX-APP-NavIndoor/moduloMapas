@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:mvp_proex/features/point/point.model.dart';
 
 List<Positioned> pointValidWidget({
   required double x,
@@ -8,7 +7,6 @@ List<Positioned> pointValidWidget({
   required double height,
   required isValidX,
   required isValidY,
-  // PointModel? lastPoint, // Pra que estava sendo usado isso?
 }) {
   return [
     Positioned(

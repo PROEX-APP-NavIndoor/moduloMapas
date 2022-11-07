@@ -1,9 +1,7 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mvp_proex/app/app.repository.dart';
 
 class LoginRepository extends AppRepository {
-  final Dio dio = Dio();
 
   Future<String> postToken({required dynamic model}) async {
     const String erroMessage = "Erro na consulta";
