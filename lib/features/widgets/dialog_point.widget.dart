@@ -110,7 +110,7 @@ Future dialogPointWidget(
                 print(details.localPosition.dx);
                 print(details.localPosition.dy);
 
-                PointParent point = PointParent();
+                PointParent point = PointParent(neighbor: [{}]);
 
                 point.x = details.localPosition.dx;
                 point.y = details.localPosition.dy;
@@ -118,8 +118,12 @@ Future dialogPointWidget(
                 point.type =
                     intermediary ? TypePoint.intermediary : TypePoint.common;
                 point.name = name;
-                point.neighbors[0]["id"] =
-                    pontoAnterior.uuid; // verificar a orientação
+                if (point.neighbor.isEmpty) {
+                  point.neighbor.add({"id": pontoAnterior.uuid});
+                } else {
+                  point.neighbor[0].putIfAbsent("id", () => pontoAnterior.uuid);
+                }
+                // verificar a orientação
                 point.mapId =
                     "c5e47fab-0a29-4d79-be62-ae3320629dbd"; // TODO: pegar o mapId do mapa atual
                 // Esse mapId em teoria era pra existir no mapa aqui, mas tecnicamente ele não está registrado no banco, então não existe
@@ -128,23 +132,19 @@ Future dialogPointWidget(
                 PointRepository pRepository = PointRepository();
 
                 try {
-                  await pRepository
-                      .postPoint(point)
-                      .then((value) {
+                  await pRepository.postPoint(point).then((value) {
                     point.uuid = json.decode(value)["id"];
                     prefs.setString(
                       "pontoAnterior",
                       pointModelToJson(point),
                     );
-                    pontoAnterior.neighbors.add({"id": point.uuid});
+                    pontoAnterior.neighbor.add({"id": point.uuid});
                     // pontoAnterior.neighbors = {
                     //   "prev": pontoAnterior.neighbors[0]["id"],
                     //   "next": point.uuid
                     // };
-                    pRepository
-                        .editPoint(pontoAnterior)
-                        .then((value) {
-                      print(pontoAnterior.neighbors);
+                    pRepository.editPoint(pontoAnterior).then((value) {
+                      print(pontoAnterior.neighbor);
                       Navigator.pop(context, point);
                     });
                   });

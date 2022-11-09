@@ -49,13 +49,13 @@ Future dialogEditPoint(
                 // se o ponto a ser removido é Parent, então ele tem vizinhos
                 if (point is PointParent) {
                   // pra cada vizinho do ponto que desejo remover
-                  for (Map<String, dynamic> vizinho in point.neighbors) {
+                  for (Map<String, dynamic> vizinho in point.neighbor) {
                     // busca na lista até achar o vizinho atual
                     for (PointModel individualPoint in points) {
                       if (individualPoint is PointParent &&
                           individualPoint.uuid == vizinho["id"]) {
                         // então remova a referência do meu ponto nele e atualiza o banco
-                        individualPoint.neighbors
+                        individualPoint.neighbor
                             .removeWhere((item) => item["id"] == point.uuid);
                         await pRepository.editPoint(individualPoint);
                         break;
