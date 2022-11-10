@@ -40,7 +40,7 @@ class PointRepository extends AppRepository {
   }
 
   /// Salva um ponto no banco.
-  Future postPoint(PointModel point) async {
+  Future postPoint(String pointClass, PointModel point) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String token = prefs.getString("token") ?? "";
     try {
@@ -49,11 +49,11 @@ class PointRepository extends AppRepository {
       }
       return await dio
           .post(
-        AppRepository.path + AppRepository.queryPoints,
+        AppRepository.path + AppRepository.queryPoints + "/" + pointClass,
         options: Options(
             headers: {"Authorization": "Bearer $token"},
             responseType: ResponseType.plain),
-        data: point.toJson(),
+        data: point.toJson(), //TODO: arrumar o .toJson
       )
           .then((res) {
         return res.toString();
@@ -102,8 +102,8 @@ class PointRepository extends AppRepository {
       if (kDebugMode) {
         print("Edit point...");
       }
+      print("no edit");
       print(point is PointParent);
-      print("\n");
       print(point is PointChild);
       return await dio
           .put(

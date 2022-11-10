@@ -36,7 +36,9 @@ class PointModel {
   }
 
   Map<String, dynamic> toJson() => {
-        "id": uuid,
+        // se o uuid for vazio é porque acabou de criar, então não passa para o post
+        if(uuid != "")
+          "id": uuid,
         "name": name,
         "description": description,
         "floor": floor,

@@ -29,7 +29,7 @@ PointParent pointParentFromJson(String str) =>
 /// ```
 class PointParent extends PointModel {
   // fields
-  List<Map<String, dynamic>> neighbor = [{}];
+  List<Map<String, dynamic>> neighbor = [];
   List<PointChild> children = [];
   TypePoint type = TypePoint.common;
 
@@ -37,7 +37,7 @@ class PointParent extends PointModel {
   // calls the zero parameter super constructor
   PointParent({
     this.type = TypePoint.common,
-    required this.neighbor,
+    this.neighbor = const [],
     this.children = const [],
   });
 
@@ -62,7 +62,7 @@ class PointParent extends PointModel {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> parentData = {
       "neighbor": neighbor,
-      "type": type.name,
+      "type": type.name.toUpperCase(),
       "children": children,
     };
     Map<String, dynamic> returnVal = super.toJson();

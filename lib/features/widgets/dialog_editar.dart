@@ -92,10 +92,7 @@ Future dialogEditar(
                 onPressed: () async {
                   point.name = name;
                   point.description = descricao;
-                  print(point is PointParent?);
-                  print("\n");
-                  print(point is PointChild?);
-                  print("\n--");
+                  print(point.toJson());
                   try {
                     await PointRepository().editPoint(point);
                     Navigator.pop(context);

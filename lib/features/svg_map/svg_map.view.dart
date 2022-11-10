@@ -414,10 +414,6 @@ class _SVGMapState extends State<SVGMap> {
                                           side: 5,
                                           onPressed: () {
                                             if (isAdmin) {
-                                              print("Antes de entrar");
-                                              print(e is PointParent);
-                                              print(e is PointChild);
-                                              print(e is PointModel);
                                               //somente desktop
                                               dialogEditPoint(context, e,
                                                       centralizar, newPointList)

@@ -103,14 +103,14 @@ Future dialogPointWidget(
                     pointParentFromJson(prefs.getString("pontoAnterior") ?? "");
 
                 // O peso ainda é necessário?
-                int peso = ((details.localPosition.dx - pontoAnterior.x).abs() +
-                        (details.localPosition.dy - pontoAnterior.y).abs())
-                    .round();
-                print("peso = $peso");
-                print(details.localPosition.dx);
-                print(details.localPosition.dy);
+                // int peso = ((details.localPosition.dx - pontoAnterior.x).abs() +
+                //         (details.localPosition.dy - pontoAnterior.y).abs())
+                //     .round();
+                // print("peso = $peso");
+                // print(details.localPosition.dx);
+                // print(details.localPosition.dy);
 
-                PointParent point = PointParent(neighbor: [{}]);
+                PointParent point = PointParent(neighbor: []);
 
                 point.x = details.localPosition.dx;
                 point.y = details.localPosition.dy;
@@ -118,21 +118,16 @@ Future dialogPointWidget(
                 point.type =
                     intermediary ? TypePoint.intermediary : TypePoint.common;
                 point.name = name;
-                if (point.neighbor.isEmpty) {
-                  point.neighbor.add({"id": pontoAnterior.uuid});
-                } else {
-                  point.neighbor[0].putIfAbsent("id", () => pontoAnterior.uuid);
-                }
                 // verificar a orientação
+                point.neighbor.add({"id": pontoAnterior.uuid});
                 point.mapId =
                     "c5e47fab-0a29-4d79-be62-ae3320629dbd"; // TODO: pegar o mapId do mapa atual
                 // Esse mapId em teoria era pra existir no mapa aqui, mas tecnicamente ele não está registrado no banco, então não existe
-                //colocar o peso aqui?
 
                 PointRepository pRepository = PointRepository();
 
                 try {
-                  await pRepository.postPoint(point).then((value) {
+                  await pRepository.postPoint("parent", point).then((value) {
                     point.uuid = json.decode(value)["id"];
                     prefs.setString(
                       "pontoAnterior",
@@ -150,9 +145,22 @@ Future dialogPointWidget(
                   });
                 } on DioError catch (e) {
                   //TODO: arrumar mensagem de erro
-                  showMessageError(
+                  //quando vem uma message ela está vindo como string, e não como mapa, porém é possível que venha como html, e nesse caso não teria como dar json decode nela
+                  try {
+                    showMessageError(
                       context: context,
-                      text: e.message + e.response?.data['message']);
+                      text: e.message +
+                          " " +
+                          e.response!.statusMessage! +
+                          "\n" +
+                          e.response!.data,
+                    );
+                  } catch (f) {
+                    showMessageError(
+                        context: context,
+                        text: e.message + " " + e.response!.statusMessage!,
+                      );
+                  }
                 }
               },
               child: const Text("Adicionar")),
