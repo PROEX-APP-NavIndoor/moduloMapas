@@ -7,7 +7,6 @@ String pointModelToJson(PointModel data) => json.encode(data.toJson());
 
 class PointModel {
   String uuid="";
-  int id=0;
   String name="";
   String description="";
   double x=0.0;
@@ -17,7 +16,6 @@ class PointModel {
 
   PointModel(
       {this.uuid = "",
-      this.id = 0,
       this.name = "",
       this.description = "",
       this.x = 0.0,

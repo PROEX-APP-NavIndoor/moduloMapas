@@ -4,5 +4,5 @@
 enum TypePoint {
   common,
   initial,
-  intermediary,
+  passage,
 }

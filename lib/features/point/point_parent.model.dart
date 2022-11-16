@@ -35,36 +35,52 @@ class PointParent extends PointModel {
 
   // generative constructor (no formal parameters)
   // calls the zero parameter super constructor
-  PointParent({
-    this.type = TypePoint.common,
-    this.neighbor = const [],
-    this.children = const [],
-  });
+  PointParent() {
+    type = TypePoint.common;
+    neighbor = [];
+    children = [];
+  }
 
   // named constructor
   /// Constrói um PointParent dado um json no tipo Map
   PointParent.fromJson(Map<String, dynamic> json) : super.fromJson(json) {
-    for (var element in json["neighbor"]) {
-      neighbor.add(element as Map<String, dynamic>);
-    }
     if (json["type"] != null) {
       json["type"] == "initial"
           ? type = TypePoint.initial
           : json["type"] == "intermediary"
-              ? type = TypePoint.intermediary
+              ? type = TypePoint.passage
               : type = TypePoint.common;
     } else {
       type = TypePoint.common;
+    }
+    if (json["neighbor"] != null) {
+      for (var element in json["neighbor"]) {
+        neighbor.add(element as Map<String, dynamic>);
+      }
+    }
+    if (json["children"] != null) {
+      for (var element in json["children"]) {
+        children.add(PointChild.fromJson(element));
+      }
     }
   }
 
   @override
   Map<String, dynamic> toJson() {
+    List<Map<String, dynamic>> pointChildList = [];
+    for (PointChild element in children) {
+      pointChildList.add(element.toJson());
+    }
+
     final Map<String, dynamic> parentData = {
       "neighbor": neighbor,
       "type": type.name.toUpperCase(),
-      "children": children,
     };
+
+    if (pointChildList.isNotEmpty) {
+      parentData["children"] = pointChildList;
+    }
+
     Map<String, dynamic> returnVal = super.toJson();
     returnVal.addEntries(parentData.entries);
     return returnVal;

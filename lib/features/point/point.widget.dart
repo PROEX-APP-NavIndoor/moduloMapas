@@ -2,8 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:mvp_proex/app/app.constant.dart';
 import 'package:mvp_proex/features/point/point.model.dart';
 import 'package:mvp_proex/features/point/point_child.model.dart';
+import 'package:mvp_proex/features/point/point_parent.model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // Um vetor de mapas é mapeado para um vetor de pointWidgets
@@ -13,11 +15,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 // Depois se mapeia então os pointModels para PointWidgets
 
 class PointWidget extends StatefulWidget {
+  // ignore: prefer_typing_uninitialized_variables
   final point;
   final double side;
   final Function()? onPressed;
+  final String idPontoAnterior;
+
   const PointWidget(
-      {Key? key, required this.point, required this.side, this.onPressed})
+      {Key? key, required this.point, required this.side, this.onPressed, required this.idPontoAnterior})
       : super(key: key);
 
   @override
@@ -36,18 +41,28 @@ class _PointWidgetState extends State<PointWidget> {
   @override
   Widget build(BuildContext context) {
     getColor() {
-      SharedPreferences.getInstance().then((value) {
-        prefs = value;
-        pontoAnterior =
-            pointModelFromJson(prefs?.getString("pontoAnterior") ?? "");
-      });
-
       if (widget.point is PointChild) {
         return Colors.green;
-      } else if (widget.point.uuid == pontoAnterior?.uuid) {
-        return Colors.yellow;
+      } else if (widget.point is PointParent) {
+        if (widget.point.uuid == widget.idPontoAnterior) {
+          return Colors.yellow;
+        }
+        switch (widget.point.type) {
+          case TypePoint.common:
+            return Colors.red;
+          case TypePoint.passage:
+            return Colors.orange;
+          case TypePoint.initial:
+            return Colors.blue;
+          default:
+            return Colors.yellow;
+        }
+      } else {
+        if (kDebugMode) {
+          print("ERRO em point.widget.\nTipo inesperado, esperado PointChild ou PointParent, recebido \"" + widget.point.runtimeType.toString() + "\".");
+        }
+        return Colors.pink;
       }
-      return Colors.red;
     }
 
     return Positioned(

@@ -26,15 +26,15 @@ class PointChild extends PointModel {
   });
 
   PointChild.fromJson(Map<String, dynamic> json) : super.fromJson(json) {
-    parentId = json["parentId"];
-    isObstacle = json["isObstacle"];
+    parentId = json["point_parent_id"];
+    isObstacle = json["is_obstacle"];
   }
 
   @override
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> childData = {
-      "parentId": parentId,
-      "isObstacle": isObstacle
+      "point_parent_id": parentId,
+      "is_obstacle": isObstacle
     };
     Map<String, dynamic> returnVal = super.toJson();
     returnVal.addEntries(childData.entries);

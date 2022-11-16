@@ -67,6 +67,8 @@ class PointRepository extends AppRepository {
   }
 
   /// Pega todos os pontos de um mapa.
+  /// 
+  /// Retorna um vetor de pontos no tipo Map
   Future getMapPoints(String mapID) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String token = prefs.getString("token") ?? "";
@@ -102,9 +104,6 @@ class PointRepository extends AppRepository {
       if (kDebugMode) {
         print("Edit point...");
       }
-      print("no edit");
-      print(point is PointParent);
-      print(point is PointChild);
       return await dio
           .put(
         AppRepository.path +
