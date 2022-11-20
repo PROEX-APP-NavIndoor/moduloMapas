@@ -29,7 +29,7 @@ Future dialogViewPoint(
           child: Column(children: [
             Text("Nome do Ponto: ${point.name}",
                 style: const TextStyle(fontSize: 20)),
-            Text(
+            SelectableText(
                 "\nID do Ponto: ${point.uuid}\nX = ${point.x.toStringAsPrecision(6)}\nY = ${point.y.toStringAsPrecision(6)}\nDescrição: ${point.description}"),
           ]),
         ),
@@ -103,7 +103,11 @@ Future dialogViewPoint(
                   textoErro += " - " + e.response!.statusMessage!;
                 }
                 try {
-                  showMessageError(context: context, text: textoErro + "\n" + json.decode(e.response!.data)["message"]);
+                  showMessageError(
+                      context: context,
+                      text: textoErro +
+                          "\n" +
+                          json.decode(e.response!.data)["message"]);
                 } catch (f) {
                   showMessageError(context: context, text: textoErro);
                 }
@@ -150,7 +154,17 @@ Future dialogViewPoint(
             ),
           ),
           if (point.uuid ==
-              pointParentFromJson(prefs.getString("pontoAnterior") ?? "").uuid)
+              pointParentFromJson(prefs.getString("pontoAnterior") ?? "")
+                  .uuid) ...[
+            // ADICIONAR FILHO
+            TextButton(
+              onPressed: () {
+                prefs.setString("modoAdicao", "vizinho");
+                Navigator.pop(context);
+              },
+              child: const Text("Adicionar Vizinho"),
+            ),
+            // ADICIONAR VIZINHO
             TextButton(
               onPressed: () {
                 prefs.setString("modoAdicao", "filho");
@@ -158,6 +172,7 @@ Future dialogViewPoint(
               },
               child: const Text("Adicionar filho"),
             ),
+          ]
         ],
       );
     },

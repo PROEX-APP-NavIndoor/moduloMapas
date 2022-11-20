@@ -45,9 +45,9 @@ class PointParent extends PointModel {
   /// Constrói um PointParent dado um json no tipo Map
   PointParent.fromJson(Map<String, dynamic> json) : super.fromJson(json) {
     if (json["type"] != null) {
-      json["type"] == "initial"
+      json["type"] == "INITIAL"
           ? type = TypePoint.initial
-          : json["type"] == "intermediary"
+          : json["type"] == "PASSAGE"
               ? type = TypePoint.passage
               : type = TypePoint.common;
     } else {
@@ -75,14 +75,12 @@ class PointParent extends PointModel {
     final Map<String, dynamic> parentData = {
       "neighbor": neighbor,
       "type": type.name.toUpperCase(),
+      // "children": pointChildList,
     };
-
-    if (pointChildList.isNotEmpty) {
-      parentData["children"] = pointChildList;
-    }
 
     Map<String, dynamic> returnVal = super.toJson();
     returnVal.addEntries(parentData.entries);
+    
     return returnVal;
   }
 }

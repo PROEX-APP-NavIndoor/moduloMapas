@@ -67,7 +67,7 @@ class PointRepository extends AppRepository {
   }
 
   /// Pega todos os pontos de um mapa.
-  /// 
+  ///
   /// Retorna um vetor de pontos no tipo Map
   Future getMapPoints(String mapID) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();

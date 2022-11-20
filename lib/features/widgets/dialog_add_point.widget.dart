@@ -106,6 +106,7 @@ Future dialogAddPoint(BuildContext context, var details, String modoAdicao) {
           TextButton(
               onPressed: () async {
                 SharedPreferences prefs = await SharedPreferences.getInstance();
+                String directionAnterior="";
 
                 //usando esse point model para que seja possível acessar os valores do ponto com o uuid desejado
                 PointParent pontoAnterior =
@@ -131,17 +132,44 @@ Future dialogAddPoint(BuildContext context, var details, String modoAdicao) {
                     case "caminho":
                       point.type = TypePoint.common;
                       break;
-                    case "passage":
+                    case "passagem":
                       point.type = TypePoint.passage;
                       break;
-                    case "initial":
+                    case "inicial":
                       point.type = TypePoint.initial;
                       break;
                     default:
                       break;
                   }
                   // verificar a orientação
-                  point.neighbor.add({"id": pontoAnterior.uuid});
+                  double difx = (point.x - pontoAnterior.x);
+                  double dify = (point.y - pontoAnterior.y);
+                  String direction;
+                  if (difx < 0) difx *= -1;
+                  if (dify < 0) dify *= -1;
+                  if (difx < 2) point.x = pontoAnterior.x;
+                  if (dify < 2) point.y = pontoAnterior.y;
+
+                  if (point.x == pontoAnterior.x) {
+                    if (pontoAnterior.y < point.y) {
+                      direction = "N";
+                      directionAnterior = "S";
+                    } else {
+                      direction = "S";
+                      directionAnterior = "N";
+                    }
+                  } else {
+                    if (pontoAnterior.x < point.x) {
+                      direction = "W";
+                      directionAnterior = "E";
+                    } else {
+                      direction = "E";
+                      directionAnterior = "W";
+                    }
+                  }
+                  point.neighbor.add(
+                    {"id": pontoAnterior.uuid, "direction": direction},
+                  );
                 } else if (point is PointChild) {
                   switch (tipo) {
                     case "filho":
@@ -175,7 +203,8 @@ Future dialogAddPoint(BuildContext context, var details, String modoAdicao) {
                         "pontoAnterior",
                         pointModelToJson(point),
                       );
-                      pontoAnterior.neighbor.add({"id": point.uuid});
+                      pontoAnterior.neighbor.add(
+                          {"id": point.uuid, "direction": directionAnterior});
                     } else if (modoAdicao == "filho") {
                       print(point.toJson());
                       pontoAnterior.children.add(point);
