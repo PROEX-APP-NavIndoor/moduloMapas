@@ -21,7 +21,7 @@ class PdfInvoiceService {
     );
     for (PointModel point in points) {
       pdf.addPage(pw.Page(
-          margin: const pw.EdgeInsets.all(50),
+          margin: const pw.EdgeInsets.all(30),
           //mainAxisAlignment: pw.MainAxisAlignment.center,
           //crossAxisAlignment: pw.CrossAxisAlignment.center,
           pageFormat: PdfPageFormat.a4,
@@ -39,14 +39,11 @@ class PdfInvoiceService {
                   children: [
                     pw.Text("MarleyApp",
                         style: pw.TextStyle(
-                            //decoration: pw.TextDecoration.underline,
-                            //decorationStyle: pw.TextDecorationStyle.solid,
-                            fontWeight: pw.FontWeight.bold,
-                            fontSize: 25)),
+                            fontWeight: pw.FontWeight.bold, fontSize: 18)),
                     pw.Image(
                       image,
-                      height: 125,
-                      width: 125,
+                      height: 70,
+                      width: 70,
                     ),
                     pw.Text(
                       point.name,
@@ -54,22 +51,37 @@ class PdfInvoiceService {
                           decoration: pw.TextDecoration.underline,
                           decorationStyle: pw.TextDecorationStyle.solid,
                           fontWeight: pw.FontWeight.bold,
-                          fontSize: 25),
-                    ),
-                    pw.SizedBox(height: 20),
-                    pw.BarcodeWidget(
-                      data: point.uuid.toString(),
-                      barcode: pw.Barcode.qrCode(
-                          typeNumber: 5,
-                          errorCorrectLevel: pw.BarcodeQRCorrectionLevel.high),
-                      width: 300,
-                      height: 300,
+                          fontSize: 18),
                     ),
                     pw.SizedBox(height: 10),
+                    pw.Row(
+                        mainAxisAlignment: pw.MainAxisAlignment.center,
+                        children: [
+                          for (int cont = 0; cont < 4; cont++)
+                            pw.Padding(
+                                padding: const pw.EdgeInsets.all(8.0),
+                                child: pw.Column(children: [
+                                  for (int cont = 0; cont < 4; cont++)
+                                    pw.Padding(
+                                      padding: const pw.EdgeInsets.all(8.0),
+                                      child: pw.BarcodeWidget(
+                                        padding: const pw.EdgeInsets.only(),
+                                        data: point.uuid.toString(),
+                                        barcode: pw.Barcode.qrCode(
+                                            typeNumber: 5,
+                                            errorCorrectLevel: pw
+                                                .BarcodeQRCorrectionLevel.high),
+                                        width: 90,
+                                        height: 90,
+                                      ),
+                                    ),
+                                  pw.SizedBox(height: 10),
+                                ]))
+                        ]),
                     pw.Text(
                       point.description,
                       style: const pw.TextStyle(
-                        fontSize: 18,
+                        fontSize: 15,
                       ),
                       textAlign: pw.TextAlign.center,
                     ),
