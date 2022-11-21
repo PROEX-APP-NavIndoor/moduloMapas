@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rx_notifier/rx_notifier.dart';
 import 'package:mvp_proex/app/app.color.dart';
-import 'package:mvp_proex/app/app.repository.dart';
 import 'package:mvp_proex/features/login/login.controller.dart';
 import 'package:mvp_proex/features/login/login.repository.dart';
 import 'package:mvp_proex/features/user/user.model.dart';
@@ -50,7 +49,7 @@ class _LoginViewState extends State<LoginView> {
                   const Spacer(
                     flex: 4,
                   ),
-                  Text(
+                  const Text(
                     "Módulo\n1",
                     style: TextStyle(
                       fontSize: 36,
@@ -140,15 +139,15 @@ class _LoginViewState extends State<LoginView> {
                             );
                     },
                   ),
-                  Spacer(
+                  const Spacer(
                     flex: 4,
                   ),
                   TextButton(
                     onPressed: () {
                       Navigator.of(context).pushNamed("/recovery-password");
                     },
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
+                    child: const Padding(
+                      padding: EdgeInsets.all(8.0),
                       child: Text(
                         "Recuperar Senha",
                         style: TextStyle(
@@ -160,7 +159,7 @@ class _LoginViewState extends State<LoginView> {
                       ),
                     ),
                   ),
-                  Spacer(
+                  const Spacer(
                     flex: 1,
                   ),
                 ],

@@ -33,7 +33,7 @@ class _ButtonSubmitWidgetState extends State<ButtonSubmitWidget> {
           elevation: 10,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20.0),
-            side: BorderSide(
+            side: const BorderSide(
               color: AppColors.primary,
             ),
           ),

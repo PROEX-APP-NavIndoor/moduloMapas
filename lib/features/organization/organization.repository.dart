@@ -5,7 +5,6 @@ import 'package:mvp_proex/app/app.repository.dart';
 import 'package:mvp_proex/features/organization/organization.model.dart';
 
 class OrganizationRepository extends AppRepository {
-  Dio dio = Dio();
 
   Future<String> createorganization(
       OrganizationModel organizationModel, String token) async {

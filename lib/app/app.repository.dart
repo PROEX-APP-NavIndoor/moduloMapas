@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 class AppRepository {
   static const String path = 'https://api-proex.onrender.com';
@@ -30,7 +31,10 @@ class AppRepository {
         },
       );
     } catch (e) {
-      print(e);
+      if (kDebugMode) {
+        print("Erro em post:\n");
+        print(e);
+      }
       return erroMessage;
     }
   }
@@ -38,7 +42,10 @@ class AppRepository {
   Future<String> get(
       {required String id, required String query, Options? options}) async {
     const String erroMessage = "Erro na consulta";
-    print(AppRepository.path + query + '/' + id);
+    if (kDebugMode) {
+      print("GET...\n");
+      print(AppRepository.path + query + '/' + id);
+    }
     try {
       return await dio
           .get(
@@ -53,7 +60,10 @@ class AppRepository {
         },
       );
     } catch (e) {
-      print(e);
+      if (kDebugMode) {
+        print("Erro em post:\n");
+        print(e);
+      }
       return erroMessage;
     }
   }

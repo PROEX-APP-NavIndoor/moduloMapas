@@ -1,4 +1,8 @@
+/// Valid types:
+/// 
+/// common, initial, intermediary.
 enum TypePoint {
-  path,
-  goal,
+  common,
+  initial,
+  passage,
 }

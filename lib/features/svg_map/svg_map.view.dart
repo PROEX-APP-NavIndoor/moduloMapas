@@ -5,6 +5,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'package:flutter_svg/svg.dart';
+import 'package:mvp_proex/features/point/point_child.model.dart';
+import 'package:mvp_proex/features/point/point_parent.model.dart';
+import 'package:mvp_proex/features/widgets/shared/snackbar.message.dart';
+import 'package:mvp_proex/features/widgets/test_line.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mvp_proex/features/login/login.repository.dart';
 import 'package:mvp_proex/features/user/user.model.dart';
@@ -13,8 +17,8 @@ import 'package:mvp_proex/features/point/point.widget.dart';
 import 'package:mvp_proex/features/point/point.repository.dart';
 import 'package:mvp_proex/features/widgets/point_valid.widget.dart';
 import 'package:mvp_proex/features/widgets/custom_appbar.widget.dart';
-import 'package:mvp_proex/features/widgets/dialog_edit_point.dart';
-import 'package:mvp_proex/features/widgets/dialog_point.widget.dart';
+import 'package:mvp_proex/features/widgets/dialog_view_point.dart';
+import 'package:mvp_proex/features/widgets/dialog_add_point.widget.dart';
 import 'package:mvp_proex/invoice_service.dart';
 import 'package:dio/dio.dart';
 
@@ -90,9 +94,11 @@ class _SVGMapState extends State<SVGMap> {
   bool isAdmin = false;
   bool isLine = true;
 
+  /// Modos possíveis: caminho, inicial, filho
+  String modoAdicao = "caminho";
+
   double? x, y;
   double top = 0, left = 0;
-  //top e left não precisam mais ser futuros porque agora não são inicializados no centro da pessoa, o mapa é iniciado com 0 de offset.
 
   late double scaleFactor;
 
@@ -101,71 +107,87 @@ class _SVGMapState extends State<SVGMap> {
 
   late final Widget svg;
 
-  //só enquanto tivermos apenas esse mapa, depois que tiver uma tela pra escolher o mapa teremos que mudar
-  late String reitoriaId = "7aae38c8-1ac5-4c52-bd5d-648a8625209d";
-  late String blocoC11Id = "c5e47fab-0a29-4d79-be62-ae3320629dbd";
+  // TODO: receber o mapa pela tela anterior de escolher mapas
+  final String reitoriaId = "7aae38c8-1ac5-4c52-bd5d-648a8625209d";
+  final String blocoCSuperiorId = "c5e47fab-0a29-4d79-be62-ae3320629dbd";
+  final String blocoCTerreoId = "eb562369-e529-45e5-a353-2e353e591add";
 
-  String prev = "";
-  late PointModel pontoAnterior;
-  int id = 0;
-  int inicio = 0;
+  late PointParent pontoAnterior;
   List<PointModel> newPointList = [];
-  Map graph = {};
 
   final PdfInvoiceService service = PdfInvoiceService();
 
   void centralizar(bool flagScale) {
-    // TODO: mudar para pegar as coordenadas do ponto anterior
     setState(() {
       flagDuration = flagScale;
-      // top = ((widget.person.y - MediaQuery.of(context).size.height / 2) +
-      //         2 * AppBar().preferredSize.height) * -1;
-      // left = (widget.person.x - MediaQuery.of(context).size.width / 2) * -1;
-      top = ((MediaQuery.of(context).size.height / 2) +
+      top = ((pontoAnterior.y - MediaQuery.of(context).size.height / 2) +
               2 * AppBar().preferredSize.height) *
           -1;
-      left = (MediaQuery.of(context).size.width / 2) * -1;
+      left = (pontoAnterior.x - MediaQuery.of(context).size.width / 2) * -1;
     });
   }
 
-  PointRepository allPoints = PointRepository();
-  Future<String>? connected;
-  SharedPreferences? prefs;
+  late PointParent pontoRecebido;
   String erroMessage = "ERRO INESPERADO";
   String erroDetalhe = "ERRO INESPERADO";
 
   // Realiza o login automaticamente para testes, na versão final tem que passar pela tela de login antes de entrar na tela de mapas
-  String tempToken = "";
+  // TODO: realizar login por alguma tela anterior
   UserModel tempModel =
       UserModel(email: "gabriel@gmail.com", password: "123456");
-  LoginRepository tempLogin = LoginRepository();
 
   StreamController<String> _strcontroller = StreamController<String>();
   Future fetchMapPoints() async {
     _strcontroller = StreamController<String>(
-      onPause: () => print('Paused'),
-      onResume: () => print('Resumed'),
-      onCancel: () => print('Cancelled'),
+      onPause: () => debugPrint('Paused'),
+      onResume: () => debugPrint('Resumed'),
+      onCancel: () => debugPrint('Cancelled'),
       onListen: () async {
         SharedPreferences prefs;
         try {
-          await tempLogin.postToken(model: tempModel).then(
-                (res) async => {
-                  tempToken = res,
+          await LoginRepository().postToken(model: tempModel).then(
+                (tokenRes) async => {
                   prefs = await SharedPreferences.getInstance(),
-                  await allPoints.getMapPoints(tempToken, blocoC11Id).then(
+                  prefs.setString("token", tokenRes),
+                  await PointRepository().getMapPoints(blocoCSuperiorId).then(
                         (res) => {
-                          for (var cada in res)
+                          if (res is List)
                             {
-                              newPointList.add(PointModel.fromJson(cada)),
+                              if (res.isEmpty)
+                                {
+                                  //TODO
+                                  throw ("Não há pontos no mapa!"),
+                                },
+                            }
+                          else
+                            {
+                              // ignore: avoid_print
+                              print(
+                                  "ERRO na resposta de getMapPoint.\nO retorno deve ser uma lista de pontos\nTipo esperado: List, tipo recebido: " +
+                                      res.runtimeType.toString()),
+                              exit(1),
                             },
-                          id = newPointList.length,
-                          // TODO: tratar quando não houver pontos no mapa (quando id == 0)
+                          for (var ponto in res)
+                            {
+                              pontoRecebido = PointParent.fromJson(ponto),
+                              newPointList.add(pontoRecebido),
+                              if (pontoRecebido.children.isNotEmpty)
+                                {
+                                  for (PointChild filho
+                                      in pontoRecebido.children)
+                                    {
+                                      newPointList.add(filho),
+                                    }
+                                }
+                            },
                           prefs.setString(
                             "pontoAnterior",
                             pointModelToJson(newPointList.first),
                           ),
-                          pontoAnterior = newPointList.first,
+                          prefs.setString("modoAdicao", "caminho"),
+                          pontoAnterior = newPointList.first
+                              as PointParent, // O primeiro elemento da lista não pode ser um ponto filho
+                          centralizar(flagScale),
                         },
                       ),
                 },
@@ -193,7 +215,11 @@ class _SVGMapState extends State<SVGMap> {
               erroMessage = "Erro desconhecido (" +
                   e.response!.statusCode.toString() +
                   ") - contate o suporte";
-              erroDetalhe = e.response?.data["message"];
+              if (e.response!.data is! String) {
+                erroDetalhe = e.response!.data["message"];
+              } else {
+                erroDetalhe = e.response!.data!;
+              }
               break;
           }
           _strcontroller.addError(erroMessage);
@@ -220,7 +246,6 @@ class _SVGMapState extends State<SVGMap> {
       color: Colors.white,
       fit: BoxFit.none,
     );
-    graph[0] = {};
     super.initState();
   }
 
@@ -229,9 +254,9 @@ class _SVGMapState extends State<SVGMap> {
     return StreamBuilder<Object>(
       stream: _strcontroller.stream,
       builder: (context, snapshot) {
-        Widget child;
+        Widget childVar;
         if (snapshot.hasError) {
-          child = Scaffold(
+          childVar = Scaffold(
             body: AlertDialog(
               title: const Text("Erro de conexão"),
               content: SingleChildScrollView(
@@ -266,7 +291,7 @@ class _SVGMapState extends State<SVGMap> {
             ),
           );
         } else if (snapshot.connectionState != ConnectionState.done) {
-          child = Center(
+          childVar = Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: const [
@@ -296,7 +321,7 @@ class _SVGMapState extends State<SVGMap> {
 
           bool isValid = isValidX || isValidY;
 
-          child = Scaffold(
+          childVar = Scaffold(
             appBar: CustomAppBar(
               height: 100,
               child: Stack(
@@ -384,18 +409,49 @@ class _SVGMapState extends State<SVGMap> {
                               },
                             );
                           },
+                          // Adiciona um ponto.
+                          // Se não estiver no modo caminho não precisa validar se está na linha
+                          // No final da adição, se houve adição de ponto ele é colocado na lista; se era adição de ponto filho ele automaticamente volta para adição de caminho
                           onTapDown: (details) {
-                            if (isAdmin && isValid && isLine) {
-                              SharedPreferences prefs;
-                              dialogPointWidget(context, details, id,
-                                      newPointList, graph, tempToken)
-                                  .then((point) => {
-                                        if (point != null)
-                                          {
-                                            newPointList.add(point),
-                                            pontoAnterior = newPointList.last
-                                          }
-                                      });
+                            if (isAdmin &&
+                                modoAdicao != "vizinho" &&
+                                ((isValid && isLine) ||
+                                    (modoAdicao != "caminho"))) {
+                              dialogAddPoint(context, details, modoAdicao)
+                                  .then((point) {
+                                if (point != null) {
+                                  newPointList.add(point);
+                                  if (point is PointParent) {
+                                    pontoAnterior =
+                                        newPointList.last as PointParent;
+                                  } else if (point is PointChild) {
+                                    for (var element in newPointList) {
+                                      if (element.uuid == pontoAnterior.uuid) {
+                                        if (element is PointParent) {
+                                          element.children.add(point);
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                                setState(() {});
+                              }).whenComplete(() async {
+                                if (modoAdicao == "filho") {
+                                  SharedPreferences prefs =
+                                      await SharedPreferences.getInstance();
+                                  prefs.setString("modoAdicao", "caminho");
+                                  modoAdicao = "caminho";
+                                  setState(() {});
+                                }
+                                for (var element in newPointList) {
+                                  if (element is PointParent) {
+                                    if (element.uuid ==
+                                        "4c7a27dc-5ea4-4f24-bde5-0244a1162665") {
+                                      print(element.children);
+                                    }
+                                  }
+                                }
+                              });
                             }
                           },
                           child: Container(
@@ -405,44 +461,153 @@ class _SVGMapState extends State<SVGMap> {
                               children: [
                                 svg,
                                 if (isAdmin)
+                                  CustomPaint(
+                                    painter:
+                                        PathPainter(pointList: newPointList),
+                                    child: SizedBox(
+                                      width: x,
+                                      height: y,
+                                    ),
+                                  ),
+                                if (modoAdicao == "filho")
+                                  CustomPaint(
+                                    painter: LinePainter(
+                                      coordInicialX: pontoAnterior.x,
+                                      coordInicialY: pontoAnterior.y,
+                                    ),
+                                    child: SizedBox(
+                                      width: x,
+                                      height: y,
+                                    ),
+                                  ),
+                                if (isAdmin)
                                   ...newPointList
                                       .map<Widget>(
-                                        (e) => PointWidget(
-                                          point: e,
+                                        (pointInList) => PointWidget(
+                                          point: pointInList,
                                           side: 5,
-                                          onPressed: () {
+                                          idPontoAnterior: pontoAnterior.uuid,
+                                          onPressed: () async {
                                             if (isAdmin) {
-                                              //somente desktop
-                                              dialogEditPoint(
-                                                      context,
-                                                      e,
-                                                      id,
-                                                      tempToken,
-                                                      inicio,
-                                                      centralizar,
-                                                      widget,
-                                                      newPointList,
-                                                      graph)
-                                                  .whenComplete(
-                                                () {
-                                                  SharedPreferences
-                                                          .getInstance()
-                                                      .then(
-                                                    (value) {
-                                                      prefs = value;
-                                                      setState(
-                                                        () {
-                                                          pontoAnterior =
-                                                              pointModelFromJson(
-                                                                  prefs?.getString(
-                                                                          "pontoAnterior") ??
-                                                                      "");
-                                                        },
-                                                      );
-                                                    },
+                                              SharedPreferences prefs =
+                                                  await SharedPreferences
+                                                      .getInstance();
+                                              if (modoAdicao == "vizinho") {
+                                                if (pointInList
+                                                    is PointParent) {
+                                                  showDialog(
+                                                      context: context,
+                                                      builder: (context) {
+                                                        return AlertDialog(
+                                                          title: const Text(
+                                                              "Adicionando vizinho..."),
+                                                          content: Column(
+                                                            children: const [
+                                                              Text(
+                                                                  "Aguarde..."),
+                                                              CircularProgressIndicator(),
+                                                            ],
+                                                          ),
+                                                        );
+                                                      });
+                                                  // adiciona o vizinho apenas se não existir
+                                                  // TODO: verificar orientação
+                                                  if (pontoAnterior.neighbor
+                                                          .any(
+                                                        (element) =>
+                                                            element["id"] ==
+                                                            pointInList.uuid,
+                                                      ) ==
+                                                      false) {
+                                                    pontoAnterior.neighbor.add({
+                                                      "id": pointInList.uuid
+                                                    });
+                                                  }
+                                                  if (pointInList.neighbor.any(
+                                                        (element) =>
+                                                            element["id"] ==
+                                                            pontoAnterior.uuid,
+                                                      ) ==
+                                                      false) {
+                                                    pointInList.neighbor.add({
+                                                      "id": pontoAnterior.uuid
+                                                    });
+                                                  }
+                                                  try {
+                                                    await PointRepository()
+                                                        .editPoint(
+                                                      pontoAnterior,
+                                                    );
+                                                    await PointRepository()
+                                                        .editPoint(pointInList);
+                                                    showMessageSucess(
+                                                      context: context,
+                                                      text:
+                                                          "Vizinho adicionado",
+                                                    );
+                                                  } on DioError {
+                                                    pontoAnterior.neighbor
+                                                        .removeWhere(
+                                                      (element) =>
+                                                          element["id"] ==
+                                                          pointInList.uuid,
+                                                    );
+                                                    pointInList.neighbor
+                                                        .removeWhere(
+                                                      (element) =>
+                                                          element["id"] ==
+                                                          pontoAnterior.uuid,
+                                                    );
+                                                    showMessageError(
+                                                      context: context,
+                                                      text:
+                                                          "Erro ao adicionar vizinho",
+                                                    );
+                                                  }
+                                                  Navigator.pop(context);
+                                                  modoAdicao = "caminho";
+                                                  prefs.setString(
+                                                      "modoAdicao", "caminho");
+                                                } else {
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(
+                                                    const SnackBar(
+                                                      content: Text(
+                                                        "O ponto não pode ser objetivo nem obstáculo!",
+                                                        textAlign:
+                                                            TextAlign.center,
+                                                      ),
+                                                    ),
                                                   );
-                                                },
-                                              );
+                                                }
+                                              } else {
+                                                dialogViewPoint(
+                                                        context,
+                                                        pointInList,
+                                                        centralizar,
+                                                        newPointList)
+                                                    .whenComplete(
+                                                  () async {
+                                                    modoAdicao =
+                                                        prefs.getString(
+                                                                "modoAdicao") ??
+                                                            "caminho";
+                                                    if (modoAdicao !=
+                                                        "caminho") {
+                                                      isLine = false;
+                                                    }
+                                                    setState(
+                                                      () {
+                                                        pontoAnterior =
+                                                            pointParentFromJson(
+                                                                prefs.getString(
+                                                                        "pontoAnterior") ??
+                                                                    "");
+                                                      },
+                                                    );
+                                                  },
+                                                );
+                                              }
                                             }
                                           },
                                         ),
@@ -456,7 +621,6 @@ class _SVGMapState extends State<SVGMap> {
                                     height: widget.svgHeight,
                                     isValidX: isValidX,
                                     isValidY: isValidY,
-                                    // lastPoint: pontoAnterior,
                                   ),
                               ],
                             ),
@@ -472,7 +636,7 @@ class _SVGMapState extends State<SVGMap> {
               mainAxisAlignment: MainAxisAlignment.end,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                isAdmin
+                (isAdmin && modoAdicao == "caminho")
                     ? FloatingActionButton(
                         heroTag: "btnLine",
                         onPressed: () {
@@ -566,7 +730,7 @@ class _SVGMapState extends State<SVGMap> {
             ),
           );
         }
-        return child;
+        return childVar;
       },
     );
   }
