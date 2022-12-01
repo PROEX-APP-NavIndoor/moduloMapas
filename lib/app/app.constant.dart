@@ -3,6 +3,6 @@
 /// common, initial, intermediary.
 enum TypePoint {
   common,
-  initial,
+  entrance,
   passage,
 }

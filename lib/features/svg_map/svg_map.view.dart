@@ -7,8 +7,10 @@ import 'dart:math' as math;
 import 'package:flutter_svg/svg.dart';
 import 'package:mvp_proex/features/point/point_child.model.dart';
 import 'package:mvp_proex/features/point/point_parent.model.dart';
+import 'package:mvp_proex/features/svg_map/svg_map_flags.dart';
+import 'package:mvp_proex/features/widgets/dialog_view_point.dart';
 import 'package:mvp_proex/features/widgets/shared/snackbar.message.dart';
-import 'package:mvp_proex/features/widgets/test_line.dart';
+import 'package:mvp_proex/features/widgets/painters.widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mvp_proex/features/login/login.repository.dart';
 import 'package:mvp_proex/features/user/user.model.dart';
@@ -17,7 +19,6 @@ import 'package:mvp_proex/features/point/point.widget.dart';
 import 'package:mvp_proex/features/point/point.repository.dart';
 import 'package:mvp_proex/features/widgets/point_valid.widget.dart';
 import 'package:mvp_proex/features/widgets/custom_appbar.widget.dart';
-import 'package:mvp_proex/features/widgets/dialog_view_point.dart';
 import 'package:mvp_proex/features/widgets/dialog_add_point.widget.dart';
 import 'package:mvp_proex/invoice_service.dart';
 import 'package:dio/dio.dart';
@@ -92,10 +93,6 @@ class SVGMap extends StatefulWidget {
 
 class _SVGMapState extends State<SVGMap> {
   bool isAdmin = false;
-  bool isLine = true;
-
-  /// Modos possíveis: caminho, inicial, filho
-  String modoAdicao = "caminho";
 
   double? x, y;
   double top = 0, left = 0;
@@ -184,7 +181,7 @@ class _SVGMapState extends State<SVGMap> {
                             "pontoAnterior",
                             pointModelToJson(newPointList.first),
                           ),
-                          prefs.setString("modoAdicao", "caminho"),
+                          SvgMapFlags.modoAdicao = "caminho",
                           pontoAnterior = newPointList.first
                               as PointParent, // O primeiro elemento da lista não pode ser um ponto filho
                           centralizar(flagScale),
@@ -414,42 +411,59 @@ class _SVGMapState extends State<SVGMap> {
                           // No final da adição, se houve adição de ponto ele é colocado na lista; se era adição de ponto filho ele automaticamente volta para adição de caminho
                           onTapDown: (details) {
                             if (isAdmin &&
-                                modoAdicao != "vizinho" &&
-                                ((isValid && isLine) ||
-                                    (modoAdicao != "caminho"))) {
-                              dialogAddPoint(context, details, modoAdicao)
-                                  .then((point) {
+                                SvgMapFlags.modoAdicao != "vizinho" &&
+                                ((isValid && SvgMapFlags.isLine) ||
+                                    (SvgMapFlags.modoAdicao != "caminho"))) {
+                              dialogAddPoint(context, details).then((point) {
                                 if (point != null) {
                                   newPointList.add(point);
-                                  if (point is PointParent) {
-                                    pontoAnterior =
-                                        newPointList.last as PointParent;
-                                  } else if (point is PointChild) {
-                                    for (var element in newPointList) {
-                                      if (element.uuid == pontoAnterior.uuid) {
-                                        if (element is PointParent) {
-                                          element.children.add(point);
+                                  for (var element in newPointList) {
+                                    if (element.uuid == pontoAnterior.uuid &&
+                                        element is PointParent) {
+                                      if (point is PointChild) {
+                                        element.children.add(point);
+                                      } else {
+                                        // O pontoAnterior.neighbor é editado em dialog_add_point utilizando o que estava no prefs, mas ele só é atualizado na newPointList aqui
+                                        for (var vizinho in point.neighbor) {
+                                          if (vizinho["id"] == element.uuid) {
+                                            String direction =
+                                                vizinho["direction"];
+                                            String directionAnterior = "";
+                                            switch (direction) {
+                                              case "N":
+                                                directionAnterior = "S";
+                                                break;
+                                              case "S":
+                                                directionAnterior = "N";
+                                                break;
+                                              case "E":
+                                                directionAnterior = "W";
+                                                break;
+                                              case "W":
+                                                directionAnterior = "E";
+                                                break;
+                                              default:
+                                                break;
+                                            }
+                                            element.neighbor.add({
+                                              "id": point.uuid,
+                                              "direction": directionAnterior,
+                                            });
+                                          }
                                         }
+                                        pontoAnterior =
+                                            newPointList.last as PointParent;
                                       }
                                     }
                                   }
                                 }
-                                setState(() {});
-                              }).whenComplete(() async {
-                                if (modoAdicao == "filho") {
-                                  SharedPreferences prefs =
-                                      await SharedPreferences.getInstance();
-                                  prefs.setString("modoAdicao", "caminho");
-                                  modoAdicao = "caminho";
+                                setState(() {
+                                  newPointList = newPointList;
+                                });
+                              }).whenComplete(() {
+                                if (SvgMapFlags.modoAdicao == "filho") {
+                                  SvgMapFlags.modoAdicao = "caminho";
                                   setState(() {});
-                                }
-                                for (var element in newPointList) {
-                                  if (element is PointParent) {
-                                    if (element.uuid ==
-                                        "4c7a27dc-5ea4-4f24-bde5-0244a1162665") {
-                                      print(element.children);
-                                    }
-                                  }
                                 }
                               });
                             }
@@ -469,7 +483,7 @@ class _SVGMapState extends State<SVGMap> {
                                       height: y,
                                     ),
                                   ),
-                                if (modoAdicao == "filho")
+                                if (SvgMapFlags.modoAdicao == "filho")
                                   CustomPaint(
                                     painter: LinePainter(
                                       coordInicialX: pontoAnterior.x,
@@ -488,132 +502,209 @@ class _SVGMapState extends State<SVGMap> {
                                           side: 5,
                                           idPontoAnterior: pontoAnterior.uuid,
                                           onPressed: () async {
-                                            if (isAdmin) {
-                                              SharedPreferences prefs =
-                                                  await SharedPreferences
-                                                      .getInstance();
-                                              if (modoAdicao == "vizinho") {
-                                                if (pointInList
-                                                    is PointParent) {
-                                                  showDialog(
-                                                      context: context,
-                                                      builder: (context) {
-                                                        return AlertDialog(
-                                                          title: const Text(
-                                                              "Adicionando vizinho..."),
-                                                          content: Column(
-                                                            children: const [
-                                                              Text(
-                                                                  "Aguarde..."),
-                                                              CircularProgressIndicator(),
-                                                            ],
+                                            SharedPreferences prefs =
+                                                await SharedPreferences
+                                                    .getInstance();
+                                            if (SvgMapFlags.modoAdicao ==
+                                                "vizinho") {
+                                              if (pointInList is PointParent) {
+                                                showDialog(
+                                                    context: context,
+                                                    builder: (context) {
+                                                      return AlertDialog(
+                                                        title: const Text(
+                                                            "Adicionar Vizinho?"),
+                                                        actions: [
+                                                          TextButton(
+                                                            onPressed: () {
+                                                              SvgMapFlags
+                                                                      .modoAdicao =
+                                                                  "caminho";
+                                                              Navigator.pop(
+                                                                  context);
+                                                            },
+                                                            child: const Text(
+                                                              "Cancelar",
+                                                              style: TextStyle(
+                                                                  color: Colors
+                                                                      .redAccent),
+                                                            ),
                                                           ),
-                                                        );
-                                                      });
-                                                  // adiciona o vizinho apenas se não existir
-                                                  // TODO: verificar orientação
-                                                  if (pontoAnterior.neighbor
-                                                          .any(
-                                                        (element) =>
-                                                            element["id"] ==
-                                                            pointInList.uuid,
-                                                      ) ==
-                                                      false) {
-                                                    pontoAnterior.neighbor.add({
-                                                      "id": pointInList.uuid
+                                                          TextButton(
+                                                            onPressed:
+                                                                () async {
+                                                              String direction;
+                                                              String
+                                                                  directionAnterior;
+                                                              if (isValidX) {
+                                                                if (pontoAnterior
+                                                                        .y <
+                                                                    pointInList
+                                                                        .y) {
+                                                                  direction =
+                                                                      "N";
+                                                                  directionAnterior =
+                                                                      "S";
+                                                                } else {
+                                                                  direction =
+                                                                      "S";
+                                                                  directionAnterior =
+                                                                      "N";
+                                                                }
+                                                              } else {
+                                                                if (pontoAnterior
+                                                                        .x <
+                                                                    pointInList
+                                                                        .x) {
+                                                                  direction =
+                                                                      "W";
+                                                                  directionAnterior =
+                                                                      "E";
+                                                                } else {
+                                                                  direction =
+                                                                      "E";
+                                                                  directionAnterior =
+                                                                      "W";
+                                                                }
+                                                              }
+                                                              if (isValidX ||
+                                                                  isValidY) {
+                                                                // Se ainda não for vizinho do ponto anterior (o amarelo)
+                                                                if (pontoAnterior
+                                                                        .neighbor
+                                                                        .any((element) =>
+                                                                            element["id"] ==
+                                                                            pointInList.uuid) ==
+                                                                    false) {
+                                                                  // Adiciona o vizinho no ponto anterior (o amarelo)
+                                                                  pontoAnterior
+                                                                      .neighbor
+                                                                      .add({
+                                                                    "id": pointInList
+                                                                        .uuid,
+                                                                    "direction":
+                                                                        directionAnterior,
+                                                                  });
+                                                                }
+                                                                // Se ainda não for vizinho no ponto clicado
+                                                                if (pointInList.neighbor.any((element) =>
+                                                                        element[
+                                                                            "id"] ==
+                                                                        pontoAnterior
+                                                                            .uuid) ==
+                                                                    false) {
+                                                                  // adiciona o vizinho no ponto clicado
+                                                                  pointInList
+                                                                      .neighbor
+                                                                      .add({
+                                                                    "id": pontoAnterior
+                                                                        .uuid,
+                                                                    "direction":
+                                                                        direction,
+                                                                  });
+                                                                }
+                                                                try {
+                                                                  await PointRepository()
+                                                                      .editPoint(
+                                                                    pontoAnterior,
+                                                                  );
+                                                                  await PointRepository()
+                                                                      .editPoint(
+                                                                          pointInList);
+                                                                  for (var element
+                                                                      in newPointList) {
+                                                                    if (element
+                                                                            .uuid ==
+                                                                        pontoAnterior
+                                                                            .uuid) {
+                                                                      if (element
+                                                                          is PointParent) {
+                                                                        element
+                                                                            .neighbor
+                                                                            .add({
+                                                                          "id":
+                                                                              pointInList.uuid,
+                                                                          "direction":
+                                                                              directionAnterior
+                                                                        });
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                  showMessageSucess(
+                                                                    context:
+                                                                        context,
+                                                                    text:
+                                                                        "Vizinho adicionado",
+                                                                  );
+                                                                } on DioError {
+                                                                  pontoAnterior
+                                                                      .neighbor
+                                                                      .removeWhere(
+                                                                    (e) =>
+                                                                        e["id"] ==
+                                                                        pointInList
+                                                                            .uuid,
+                                                                  );
+                                                                  pointInList
+                                                                      .neighbor
+                                                                      .removeWhere(
+                                                                    (e) =>
+                                                                        e["id"] ==
+                                                                        pontoAnterior
+                                                                            .uuid,
+                                                                  );
+                                                                  showMessageError(
+                                                                    context:
+                                                                        context,
+                                                                    text:
+                                                                        "Erro ao adicionar vizinho",
+                                                                  );
+                                                                }
+                                                                Navigator.pop(
+                                                                    context);
+                                                                SvgMapFlags
+                                                                        .modoAdicao =
+                                                                    "caminho";
+                                                              }
+                                                            },
+                                                            child: const Text(
+                                                                "Sim"),
+                                                          )
+                                                        ],
+                                                      );
                                                     });
-                                                  }
-                                                  if (pointInList.neighbor.any(
-                                                        (element) =>
-                                                            element["id"] ==
-                                                            pontoAnterior.uuid,
-                                                      ) ==
-                                                      false) {
-                                                    pointInList.neighbor.add({
-                                                      "id": pontoAnterior.uuid
-                                                    });
-                                                  }
-                                                  try {
-                                                    await PointRepository()
-                                                        .editPoint(
-                                                      pontoAnterior,
-                                                    );
-                                                    await PointRepository()
-                                                        .editPoint(pointInList);
-                                                    showMessageSucess(
-                                                      context: context,
-                                                      text:
-                                                          "Vizinho adicionado",
-                                                    );
-                                                  } on DioError {
-                                                    pontoAnterior.neighbor
-                                                        .removeWhere(
-                                                      (element) =>
-                                                          element["id"] ==
-                                                          pointInList.uuid,
-                                                    );
-                                                    pointInList.neighbor
-                                                        .removeWhere(
-                                                      (element) =>
-                                                          element["id"] ==
-                                                          pontoAnterior.uuid,
-                                                    );
-                                                    showMessageError(
-                                                      context: context,
-                                                      text:
-                                                          "Erro ao adicionar vizinho",
-                                                    );
-                                                  }
-                                                  Navigator.pop(context);
-                                                  modoAdicao = "caminho";
-                                                  prefs.setString(
-                                                      "modoAdicao", "caminho");
-                                                } else {
-                                                  ScaffoldMessenger.of(context)
-                                                      .showSnackBar(
-                                                    const SnackBar(
-                                                      content: Text(
-                                                        "O ponto não pode ser objetivo nem obstáculo!",
-                                                        textAlign:
-                                                            TextAlign.center,
-                                                      ),
-                                                    ),
-                                                  );
-                                                }
                                               } else {
-                                                dialogViewPoint(
-                                                        context,
-                                                        pointInList,
-                                                        centralizar,
-                                                        newPointList)
-                                                    .whenComplete(
-                                                  () async {
-                                                    modoAdicao =
-                                                        prefs.getString(
-                                                                "modoAdicao") ??
-                                                            "caminho";
-                                                    if (modoAdicao !=
-                                                        "caminho") {
-                                                      isLine = false;
-                                                    }
-                                                    setState(
-                                                      () {
-                                                        pontoAnterior =
-                                                            pointParentFromJson(
-                                                                prefs.getString(
-                                                                        "pontoAnterior") ??
-                                                                    "");
-                                                      },
-                                                    );
-                                                  },
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  const SnackBar(
+                                                    content: Text(
+                                                      "O ponto não pode ser objetivo nem obstáculo!",
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                    ),
+                                                  ),
                                                 );
                                               }
+                                            } else {
+                                              dialogViewPoint(
+                                                context,
+                                                pointInList,
+                                                newPointList,
+                                              ).whenComplete(() async {
+                                                setState(() {
+                                                  pontoAnterior =
+                                                      pointParentFromJson(
+                                                          prefs.getString(
+                                                                  "pontoAnterior") ??
+                                                              "");
+                                                });
+                                              });
                                             }
                                           },
                                         ),
                                       )
                                       .toList(),
-                                if (isAdmin && isLine)
+                                if (isAdmin && SvgMapFlags.isLine)
                                   ...pointValidWidget(
                                     x: x ?? 0,
                                     y: y ?? 0,
@@ -636,13 +727,15 @@ class _SVGMapState extends State<SVGMap> {
               mainAxisAlignment: MainAxisAlignment.end,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                (isAdmin && modoAdicao == "caminho")
+                (isAdmin &&
+                        (SvgMapFlags.modoAdicao == "caminho" ||
+                            SvgMapFlags.modoAdicao == "vizinho"))
                     ? FloatingActionButton(
                         heroTag: "btnLine",
                         onPressed: () {
                           setState(
                             () {
-                              isLine = !isLine;
+                              SvgMapFlags.isLine = !SvgMapFlags.isLine;
                             },
                           );
                         },

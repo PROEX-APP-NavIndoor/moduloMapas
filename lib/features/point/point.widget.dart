@@ -21,9 +21,13 @@ class PointWidget extends StatefulWidget {
   final Function()? onPressed;
   final String idPontoAnterior;
 
-  const PointWidget(
-      {Key? key, required this.point, required this.side, this.onPressed, required this.idPontoAnterior})
-      : super(key: key);
+  const PointWidget({
+    Key? key,
+    required this.point,
+    required this.side,
+    this.onPressed,
+    required this.idPontoAnterior,
+  }) : super(key: key);
 
   @override
   State<PointWidget> createState() => _PointWidgetState();
@@ -52,14 +56,17 @@ class _PointWidgetState extends State<PointWidget> {
             return Colors.red;
           case TypePoint.passage:
             return Colors.orange;
-          case TypePoint.initial:
+          case TypePoint.entrance:
             return Colors.blue;
           default:
             return Colors.yellow;
         }
       } else {
         if (kDebugMode) {
-          print("ERRO em point.widget.\nTipo inesperado, esperado PointChild ou PointParent, recebido \"" + widget.point.runtimeType.toString() + "\".");
+          print(
+              "ERRO em point.widget.\nTipo inesperado, esperado PointChild ou PointParent, recebido \"" +
+                  widget.point.runtimeType.toString() +
+                  "\".");
         }
         return Colors.pink;
       }

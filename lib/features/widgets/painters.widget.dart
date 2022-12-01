@@ -36,7 +36,6 @@ class PathPainter extends CustomPainter {
   });
 
   double xVizinho = 0, yVizinho = 0;
-  double i = 0;
 
   @override
   void paint(Canvas canvas, size) {
@@ -48,6 +47,7 @@ class PathPainter extends CustomPainter {
     paintChild.color = Colors.green;
     paintChild.strokeWidth = 2;
 
+    // Desenha os pontos do caminho - exceto do ponto anterior
     for (var ponto in pointList) {
       if (ponto is PointParent) {
         for (var vizinho in ponto.neighbor) {
@@ -76,7 +76,6 @@ class PathPainter extends CustomPainter {
           }
         }
       }
-      i++;
     }
   }
 

@@ -101,6 +101,8 @@ class PointRepository extends AppRepository {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String token = prefs.getString("token") ?? "";
     try {
+      Map dataSent = point.toJson();
+      dataSent.remove("children"); // não é necessário mandar o children no PUT
       if (kDebugMode) {
         print("Edit point...");
       }
@@ -115,7 +117,7 @@ class PointRepository extends AppRepository {
         options: Options(
             headers: {"Authorization": "Bearer $token"},
             responseType: ResponseType.plain),
-        data: point.toJson(),
+        data: dataSent,
       )
           .then(
         (res) {

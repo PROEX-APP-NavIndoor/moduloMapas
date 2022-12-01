@@ -6,19 +6,20 @@ import 'dart:convert';
 import 'package:mvp_proex/features/point/point.repository.dart';
 import 'package:mvp_proex/features/point/point_child.model.dart';
 import 'package:mvp_proex/features/point/point_parent.model.dart';
+import 'package:mvp_proex/features/svg_map/svg_map_flags.dart';
 import 'package:mvp_proex/features/widgets/shared/snackbar.message.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mvp_proex/features/point/point.model.dart';
 
-Future dialogAddPoint(BuildContext context, var details, String modoAdicao) {
+Future dialogAddPoint(BuildContext context, var details) {
   return showDialog(
     context: context,
     builder: (context) {
-      String tipo = modoAdicao;
+      String tipo = SvgMapFlags.modoAdicao;
       String name = "Ponto";
       String descricao = "Descrição";
       return AlertDialog(
-        title: modoAdicao == "filho"
+        title: tipo == "filho"
             ? const Text("Adicionar ponto filho")
             : const Text("Adicionar ponto pai"),
         content: Column(
@@ -27,7 +28,7 @@ Future dialogAddPoint(BuildContext context, var details, String modoAdicao) {
                 "X = ${details.localPosition.dx}\nY = ${details.localPosition.dy}"),
             DropdownButtonFormField(
               value: tipo,
-              items: modoAdicao == "caminho"
+              items: SvgMapFlags.modoAdicao == "caminho"
                   ? const [
                       DropdownMenuItem(
                         child: Text("Caminho"),
@@ -38,7 +39,7 @@ Future dialogAddPoint(BuildContext context, var details, String modoAdicao) {
                         value: "passagem",
                       ),
                     ]
-                  : modoAdicao == "filho"
+                  : SvgMapFlags.modoAdicao == "filho"
                       ? const [
                           DropdownMenuItem(
                             child: Text("Destino"),
@@ -92,9 +93,8 @@ Future dialogAddPoint(BuildContext context, var details, String modoAdicao) {
         scrollable: true,
         actions: [
           TextButton(
-            onPressed: () async {
-              SharedPreferences prefs = await SharedPreferences.getInstance();
-              prefs.setString("modoAdicao", "caminho");
+            onPressed: () {
+              SvgMapFlags.modoAdicao = "caminho";
               Navigator.pop(context);
             },
             child: const Text(
@@ -106,7 +106,7 @@ Future dialogAddPoint(BuildContext context, var details, String modoAdicao) {
           TextButton(
               onPressed: () async {
                 SharedPreferences prefs = await SharedPreferences.getInstance();
-                String directionAnterior="";
+                String directionAnterior = "";
 
                 //usando esse point model para que seja possível acessar os valores do ponto com o uuid desejado
                 PointParent pontoAnterior =
@@ -115,7 +115,7 @@ Future dialogAddPoint(BuildContext context, var details, String modoAdicao) {
                 // inicialização é feita dentro do if else
                 // ignore: prefer_typing_uninitialized_variables
                 var point;
-                if (modoAdicao == "filho") {
+                if (SvgMapFlags.modoAdicao == "filho") {
                   point = PointChild();
                 } else {
                   point = PointParent();
@@ -129,16 +129,14 @@ Future dialogAddPoint(BuildContext context, var details, String modoAdicao) {
                     "c5e47fab-0a29-4d79-be62-ae3320629dbd"; // TODO: pegar o mapId do mapa atual
                 if (point is PointParent) {
                   switch (tipo) {
-                    case "caminho":
-                      point.type = TypePoint.common;
-                      break;
                     case "passagem":
                       point.type = TypePoint.passage;
                       break;
                     case "inicial":
-                      point.type = TypePoint.initial;
+                      point.type = TypePoint.entrance;
                       break;
                     default:
+                      point.type = TypePoint.common;
                       break;
                   }
                   // verificar a orientação
@@ -172,13 +170,11 @@ Future dialogAddPoint(BuildContext context, var details, String modoAdicao) {
                   );
                 } else if (point is PointChild) {
                   switch (tipo) {
-                    case "filho":
-                      point.isObstacle = false;
-                      break;
                     case "obstaculo":
                       point.isObstacle = true;
                       break;
                     default:
+                      point.isObstacle = false;
                       break;
                   }
                   point.parentId = pontoAnterior.uuid;
@@ -191,28 +187,24 @@ Future dialogAddPoint(BuildContext context, var details, String modoAdicao) {
                 PointRepository pRepository = PointRepository();
 
                 try {
-                  print(point.toJson());
                   await pRepository
                       .postPoint(
                           point is PointParent ? "parent" : "child", point)
                       .then((value) async {
                     point.uuid = json.decode(value)["id"];
 
-                    if (modoAdicao == "caminho") {
+                    if (SvgMapFlags.modoAdicao == "caminho") {
                       prefs.setString(
                         "pontoAnterior",
                         pointModelToJson(point),
                       );
                       pontoAnterior.neighbor.add(
                           {"id": point.uuid, "direction": directionAnterior});
-                    } else if (modoAdicao == "filho") {
-                      print(point.toJson());
+                      await pRepository.editPoint(pontoAnterior);
+                    } else if (SvgMapFlags.modoAdicao == "filho") {
                       pontoAnterior.children.add(point);
-                      print(pontoAnterior.children);
-                      print(pontoAnterior.toJson());
                     }
 
-                    await pRepository.editPoint(pontoAnterior);
                     Navigator.pop(context, point);
                   });
                 } on DioError catch (e) {

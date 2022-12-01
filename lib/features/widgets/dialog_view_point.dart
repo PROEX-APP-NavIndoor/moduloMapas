@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:mvp_proex/features/point/point.repository.dart';
 import 'package:mvp_proex/features/point/point_child.model.dart';
 import 'package:mvp_proex/features/point/point_parent.model.dart';
+import 'package:mvp_proex/features/svg_map/svg_map_flags.dart';
 import 'package:mvp_proex/features/widgets/dialog_qrcode.widget.dart';
 import 'package:mvp_proex/features/point/point.model.dart';
 import 'package:mvp_proex/features/widgets/shared/snackbar.message.dart';
@@ -17,7 +18,6 @@ import 'dialog_editar_point.dart';
 Future dialogViewPoint(
   BuildContext context,
   var point,
-  Function centralizar,
   List<dynamic> points,
 ) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -128,6 +128,18 @@ Future dialogViewPoint(
               style: TextStyle(color: Colors.redAccent),
             ),
           ),
+          TextButton(
+            onPressed: () {
+              if (point is PointModel) {
+                // ignore: avoid_print
+                print(point.toJson());
+              }
+            },
+            child: const Text(
+              "Debug",
+              style: TextStyle(color: Colors.blue),
+            ),
+          ),
           // GERAR QR CODE:
           TextButton(
             onPressed: () {
@@ -156,18 +168,19 @@ Future dialogViewPoint(
           if (point.uuid ==
               pointParentFromJson(prefs.getString("pontoAnterior") ?? "")
                   .uuid) ...[
-            // ADICIONAR FILHO
+            // ADICIONAR VIZINHO
             TextButton(
               onPressed: () {
-                prefs.setString("modoAdicao", "vizinho");
+                SvgMapFlags.modoAdicao = "vizinho";
                 Navigator.pop(context);
               },
               child: const Text("Adicionar Vizinho"),
             ),
-            // ADICIONAR VIZINHO
+            // ADICIONAR FILHO
             TextButton(
               onPressed: () {
-                prefs.setString("modoAdicao", "filho");
+                SvgMapFlags.modoAdicao = "filho";
+                SvgMapFlags.isLine = false;
                 Navigator.pop(context);
               },
               child: const Text("Adicionar filho"),

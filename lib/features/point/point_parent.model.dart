@@ -11,7 +11,7 @@ PointParent pointParentFromJson(String str) =>
 /// ```dart
 /// var exemplo = PointParent();
 /// exemplo.x = 10.0;
-/// exemplo.type = TypePoint.initial;
+/// exemplo.type = TypePoint.entrance;
 ///
 /// var novoexemplo = PointParent.fromJson(json);
 /// // json deve ser:
@@ -45,9 +45,9 @@ class PointParent extends PointModel {
   /// Constrói um PointParent dado um json no tipo Map
   PointParent.fromJson(Map<String, dynamic> json) : super.fromJson(json) {
     if (json["type"] != null) {
-      json["type"] == "INITIAL"
-          ? type = TypePoint.initial
-          : json["type"] == "PASSAGE"
+      json["type"] == "entrance"
+          ? type = TypePoint.entrance
+          : json["type"] == "passage"
               ? type = TypePoint.passage
               : type = TypePoint.common;
     } else {
@@ -74,8 +74,8 @@ class PointParent extends PointModel {
 
     final Map<String, dynamic> parentData = {
       "neighbor": neighbor,
-      "type": type.name.toUpperCase(),
-      // "children": pointChildList,
+      "type": type.name,
+      "children": pointChildList,
     };
 
     Map<String, dynamic> returnVal = super.toJson();
