@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rx_notifier/rx_notifier.dart';
@@ -28,7 +29,7 @@ class _LoginViewState extends State<LoginView> {
     super.initState();
     userModel = Provider.of<UserModel>(context, listen: false);
     if (userModel.token != "") {
-      Navigator.of(context).pushReplacementNamed('/home');
+      Navigator.of(context).pushReplacementNamed('/mapselection');
     }
   }
 
@@ -56,6 +57,7 @@ class _LoginViewState extends State<LoginView> {
                       fontWeight: FontWeight.w700,
                       color: AppColors.primary,
                     ),
+                    textAlign: TextAlign.center,
                   ),
                   const Spacer(
                     flex: 2,
@@ -116,8 +118,7 @@ class _LoginViewState extends State<LoginView> {
                               onPressed: () {
                                 if (_formKey.currentState!.validate()) {
                                   controller.isLoading.value = true;
-                                  LoginRepository app = LoginRepository();
-                                  app
+                                  LoginRepository()
                                       .postToken(
                                     model: userModel,
                                   )
@@ -129,7 +130,8 @@ class _LoginViewState extends State<LoginView> {
                                       } else {
                                         userModel.token = value;
                                         Navigator.of(context)
-                                            .pushReplacementNamed('/home');
+                                            .pushReplacementNamed(
+                                                '/mapselection');
                                       }
                                     },
                                   ).whenComplete(() =>
@@ -139,6 +141,31 @@ class _LoginViewState extends State<LoginView> {
                             );
                     },
                   ),
+                  TextButton(
+                      onPressed: () {
+                        userModel.email = "gabriel@gmail.com";
+                        userModel.password = "123456";
+                        LoginRepository()
+                            .postToken(
+                          model: userModel,
+                        )
+                            .then(
+                          (value) {
+                            if (value.contains("Erro")) {
+                              showMessageError(context: context, text: value);
+                            } else {
+                              userModel.token = value;
+                              Navigator.of(context)
+                                  .pushReplacementNamed('/mapselection');
+                            }
+                          },
+                        ).whenComplete(
+                                () => controller.isLoading.value = false);
+                      },
+                      child: const Text(
+                        "Automático",
+                        style: TextStyle(color: Colors.white),
+                      )),
                   const Spacer(
                     flex: 4,
                   ),

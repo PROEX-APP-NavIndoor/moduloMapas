@@ -11,8 +11,8 @@ import 'package:mvp_proex/features/svg_map/svg_map_flags.dart';
 import 'package:mvp_proex/features/widgets/dialog_view_point.dart';
 import 'package:mvp_proex/features/widgets/shared/snackbar.message.dart';
 import 'package:mvp_proex/features/widgets/painters.widget.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:mvp_proex/features/login/login.repository.dart';
 import 'package:mvp_proex/features/user/user.model.dart';
 import 'package:mvp_proex/features/point/point.model.dart';
 import 'package:mvp_proex/features/point/point.widget.dart';
@@ -68,22 +68,15 @@ class SVGMap extends StatefulWidget {
   /// ```
   final double svgScale;
 
-  /// Define a origem o personagem no SVG
-  /// Por padrão ele é 0
-  ///
-  /// ```dart
-  /// SVGMap(
-  ///   ...
-  ///   person: person,
-  ///   ...
-  /// ),
-  /// ```
+  /// É o id do mapa que contém os pontos
+  final String? mapID;
 
   const SVGMap({
     Key? key,
     required this.svgPath,
     required this.svgWidth,
     required this.svgHeight,
+    this.mapID,
     this.svgScale = 1,
   }) : super(key: key);
 
@@ -104,7 +97,8 @@ class _SVGMapState extends State<SVGMap> {
 
   late final Widget svg;
 
-  // TODO: receber o mapa pela tela anterior de escolher mapas
+  // Mantido aqui apenas para saber de forma mais rápida, mas remover
+  // TODO: remover quando não for mais necessário
   final String reitoriaId = "7aae38c8-1ac5-4c52-bd5d-648a8625209d";
   final String blocoCSuperiorId = "c5e47fab-0a29-4d79-be62-ae3320629dbd";
   final String blocoCTerreoId = "eb562369-e529-45e5-a353-2e353e591add";
@@ -124,14 +118,10 @@ class _SVGMapState extends State<SVGMap> {
     });
   }
 
+  late UserModel userModel;
   late PointParent pontoRecebido;
   String erroMessage = "ERRO INESPERADO";
   String erroDetalhe = "ERRO INESPERADO";
-
-  // Realiza o login automaticamente para testes, na versão final tem que passar pela tela de login antes de entrar na tela de mapas
-  // TODO: realizar login por alguma tela anterior
-  UserModel tempModel =
-      UserModel(email: "gabriel@gmail.com", password: "123456");
 
   StreamController<String> _strcontroller = StreamController<String>();
   Future fetchMapPoints() async {
@@ -141,52 +131,49 @@ class _SVGMapState extends State<SVGMap> {
       onCancel: () => debugPrint('Cancelled'),
       onListen: () async {
         SharedPreferences prefs;
+        prefs = await SharedPreferences.getInstance();
+        prefs.setString("token", userModel.token);
         try {
-          await LoginRepository().postToken(model: tempModel).then(
-                (tokenRes) async => {
-                  prefs = await SharedPreferences.getInstance(),
-                  prefs.setString("token", tokenRes),
-                  await PointRepository().getMapPoints(blocoCSuperiorId).then(
-                        (res) => {
-                          if (res is List)
-                            {
-                              if (res.isEmpty)
-                                {
-                                  //TODO
-                                  throw ("Não há pontos no mapa!"),
-                                },
-                            }
-                          else
-                            {
-                              // ignore: avoid_print
-                              print(
-                                  "ERRO na resposta de getMapPoint.\nO retorno deve ser uma lista de pontos\nTipo esperado: List, tipo recebido: " +
-                                      res.runtimeType.toString()),
-                              exit(1),
-                            },
-                          for (var ponto in res)
-                            {
-                              pontoRecebido = PointParent.fromJson(ponto),
-                              newPointList.add(pontoRecebido),
-                              if (pontoRecebido.children.isNotEmpty)
-                                {
-                                  for (PointChild filho
-                                      in pontoRecebido.children)
-                                    {
-                                      newPointList.add(filho),
-                                    }
-                                }
-                            },
-                          prefs.setString(
-                            "pontoAnterior",
-                            pointModelToJson(newPointList.first),
-                          ),
-                          SvgMapFlags.modoAdicao = "caminho",
-                          pontoAnterior = newPointList.first
-                              as PointParent, // O primeiro elemento da lista não pode ser um ponto filho
-                          centralizar(flagScale),
+          await PointRepository()
+              .getMapPoints(widget.mapID ?? blocoCSuperiorId)
+              .then(
+                (res) => {
+                  if (res is List)
+                    {
+                      if (res.isEmpty)
+                        {
+                          //TODO: tratar quando não houver pontos no mapa
+                          throw ("Não há pontos no mapa!"),
                         },
-                      ),
+                    }
+                  else
+                    {
+                      // ignore: avoid_print
+                      print(
+                          "ERRO na resposta de getMapPoint.\nO retorno deve ser uma lista de pontos\nTipo esperado: List, tipo recebido: " +
+                              res.runtimeType.toString()),
+                      exit(1),
+                    },
+                  for (var ponto in res)
+                    {
+                      pontoRecebido = PointParent.fromJson(ponto),
+                      newPointList.add(pontoRecebido),
+                      if (pontoRecebido.children.isNotEmpty)
+                        {
+                          for (PointChild filho in pontoRecebido.children)
+                            {
+                              newPointList.add(filho),
+                            }
+                        }
+                    },
+                  prefs.setString(
+                    "pontoAnterior",
+                    pointModelToJson(newPointList.first),
+                  ),
+                  SvgMapFlags.modoAdicao = "caminho",
+                  pontoAnterior = newPointList.first
+                      as PointParent, // O primeiro elemento da lista não pode ser um ponto filho
+                  centralizar(flagScale),
                 },
               );
           _strcontroller.sink.add("1");
@@ -235,6 +222,10 @@ class _SVGMapState extends State<SVGMap> {
 
   @override
   void initState() {
+    userModel = Provider.of<UserModel>(context, listen: false);
+    if (userModel.token == "") {
+      Navigator.pushReplacementNamed(context, '/login');
+    }
     fetchMapPoints();
 
     scaleFactor = widget.svgScale;
@@ -359,6 +350,21 @@ class _SVGMapState extends State<SVGMap> {
                       },
                     ),
                   ),
+                  Positioned(
+                    top: -10,
+                    right: 0,
+                    child: IconButton(
+                      icon: const Icon(
+                        Icons.arrow_back_rounded,
+                        size: 35,
+                        color: Colors.white,
+                      ),
+                      onPressed: () {
+                        Navigator.pushReplacementNamed(
+                            context, '/mapselection');
+                      },
+                    ),
+                  )
                 ],
               ),
             ),

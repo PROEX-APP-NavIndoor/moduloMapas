@@ -42,7 +42,7 @@ class _FormFieldWidgetState extends State<FormFieldWidget> {
           Text(
             widget.title,
             style: const TextStyle(
-              color: Colors.black,
+              color: AppColors.primary,
               fontSize: 16,
               fontWeight: FontWeight.bold,
               fontFamily: 'Manrope',
@@ -53,6 +53,7 @@ class _FormFieldWidgetState extends State<FormFieldWidget> {
             height: 5,
           ),
           TextFormField(
+            style: const TextStyle(color: Colors.white),
             obscureText: widget.obscure,
             controller: widget.controller,
             onChanged: (String value) {
