@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mvp_proex/app/app.color.dart';
 import 'package:mvp_proex/features/map/map.view.dart';
@@ -18,7 +19,7 @@ class MapselectionView extends StatefulWidget {
 
 class _MapselectionViewState extends State<MapselectionView> {
   late UserModel userModel;
-  Repository repository = Repository();
+  UserRepository repository = UserRepository();
   final _formKey = GlobalKey<FormState>();
 
   StreamController<String> _streamController = StreamController<String>();
@@ -34,10 +35,14 @@ class _MapselectionViewState extends State<MapselectionView> {
       } on DioError catch (e) {
         switch (e.response!.statusCode) {
           case 404:
-            print("Not found");
+            if (kDebugMode) {
+              print("Not found");
+            }
             break;
           case 401:
-            print("Unauthorized");
+            if (kDebugMode) {
+              print("Unauthorized");
+            }
             break;
           default:
             break;
@@ -123,7 +128,14 @@ class _MapselectionViewState extends State<MapselectionView> {
                     ),
                     TextButton(
                         onPressed: () {
-                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MapView(mysvgPath: mapa["source"], mapId: mapa["id"],)));
+                          Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => MapView(
+                                        mysvgPath: mapa["source"],
+                                        mapId: mapa["id"],
+                                        mapName: mapa["name"],
+                                      )));
                         },
                         child: const Text("Acessar mapa")),
                   ],

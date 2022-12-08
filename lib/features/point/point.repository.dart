@@ -80,8 +80,9 @@ class PointRepository extends AppRepository {
           .get(
         AppRepository.path + AppRepository.queryMap + "/" + mapID,
         options: Options(
-            headers: {"Authorization": "Bearer $token"},
-            responseType: ResponseType.json),
+          headers: {"Authorization": "Bearer $token"},
+          responseType: ResponseType.json,
+        ),
       )
           .then(
         (res) {

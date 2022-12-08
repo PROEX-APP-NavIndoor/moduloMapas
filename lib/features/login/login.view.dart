@@ -1,10 +1,9 @@
-import 'package:flutter/foundation.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rx_notifier/rx_notifier.dart';
 import 'package:mvp_proex/app/app.color.dart';
 import 'package:mvp_proex/features/login/login.controller.dart';
-import 'package:mvp_proex/features/login/login.repository.dart';
 import 'package:mvp_proex/features/user/user.model.dart';
 import 'package:mvp_proex/features/user/user.repository.dart';
 import 'package:mvp_proex/features/widgets/shared/button_submit.widget.dart';
@@ -21,7 +20,6 @@ class LoginView extends StatefulWidget {
 class _LoginViewState extends State<LoginView> {
   late UserModel userModel;
   LoginController controller = LoginController();
-  Repository repository = Repository();
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -115,20 +113,27 @@ class _LoginViewState extends State<LoginView> {
                           ? const CircularProgressIndicator()
                           : ButtonSubmitWidget(
                               textButton: "Entrar",
-                              onPressed: () {
+                              onPressed: () async {
                                 if (_formKey.currentState!.validate()) {
                                   controller.isLoading.value = true;
-                                  LoginRepository()
-                                      .postToken(
-                                    model: userModel,
+                                  await UserRepository()
+                                      .login(
+                                    userModel: userModel,
                                   )
                                       .then(
-                                    (value) {
+                                    (value) async {
                                       if (value.contains("Erro")) {
                                         showMessageError(
                                             context: context, text: value);
                                       } else {
                                         userModel.token = value;
+                                        //TODO: tratar possíveis erros de requisição
+                                        await UserRepository()
+                                            .getUser(value)
+                                            .then((othervalue) {
+                                          userModel.permission =
+                                              othervalue["role"];
+                                        });
                                         Navigator.of(context)
                                             .pushReplacementNamed(
                                                 '/mapselection');
@@ -141,31 +146,46 @@ class _LoginViewState extends State<LoginView> {
                             );
                     },
                   ),
-                  TextButton(
-                      onPressed: () {
-                        userModel.email = "gabriel@gmail.com";
-                        userModel.password = "123456";
-                        LoginRepository()
-                            .postToken(
-                          model: userModel,
-                        )
-                            .then(
-                          (value) {
-                            if (value.contains("Erro")) {
-                              showMessageError(context: context, text: value);
-                            } else {
-                              userModel.token = value;
-                              Navigator.of(context)
-                                  .pushReplacementNamed('/mapselection');
-                            }
-                          },
-                        ).whenComplete(
-                                () => controller.isLoading.value = false);
-                      },
-                      child: const Text(
-                        "Automático",
-                        style: TextStyle(color: Colors.white),
-                      )),
+                  RxBuilder(
+                    builder: ((context) {
+                      return controller.getIsLoading
+                          ? const CircularProgressIndicator()
+                          : TextButton(
+                              onPressed: () async {
+                                userModel.email = "gabriel@gmail.com";
+                                userModel.password = "123456";
+                                await UserRepository()
+                                    .login(
+                                  userModel: userModel,
+                                )
+                                    .then(
+                                  (value) async {
+                                    if (value.contains("Erro")) {
+                                      showMessageError(
+                                          context: context, text: value);
+                                    } else {
+                                      userModel.token = value;
+                                      //TODO: tratar possíveis erros de requisição
+                                      await UserRepository()
+                                          .getUser(value)
+                                          .then((othervalue) {
+                                        userModel.permission =
+                                            othervalue["role"];
+                                      });
+                                      Navigator.of(context)
+                                          .pushReplacementNamed(
+                                              '/mapselection');
+                                    }
+                                  },
+                                ).whenComplete(() =>
+                                        controller.isLoading.value = false);
+                              },
+                              child: const Text(
+                                "Automático",
+                                style: TextStyle(color: Colors.white),
+                              ));
+                    }),
+                  ),
                   const Spacer(
                     flex: 4,
                   ),

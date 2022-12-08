@@ -6,7 +6,8 @@ import 'package:flutter/foundation.dart';
 class AppRepository {
   static const String path = 'https://api-proex.onrender.com';
   static const String queryLogin = '/login';
-  static const String queryUser = '/users';
+  static const String queryUser = '/user';
+  static const String queryAllUsers = '/users';
   static const String queryMap = '/maps';
   static const String queryBuilder = '/api/accounts';
   static const String queryOrganization = '/api/accounts';

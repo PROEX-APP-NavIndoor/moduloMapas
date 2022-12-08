@@ -4,10 +4,12 @@ import 'package:mvp_proex/features/svg_map/svg_map.view.dart';
 class MapView extends StatefulWidget {
   final String? mysvgPath;
   final String? mapId;
+  final String? mapName;
   const MapView({
     Key? key,
     this.mysvgPath,
     this.mapId,
+    this.mapName,
   }) : super(key: key);
 
   @override
@@ -25,6 +27,7 @@ class _MapViewState extends State<MapView> {
           svgHeight: 600,
           svgScale: 1.3,
           mapID: widget.mapId,
+          mapName: widget.mapName,
         ),
       ),
     );

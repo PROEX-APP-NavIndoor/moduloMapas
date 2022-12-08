@@ -71,12 +71,16 @@ class SVGMap extends StatefulWidget {
   /// É o id do mapa que contém os pontos
   final String? mapID;
 
+  /// O nome do mapa para ser passado para a CustomAppBar
+  final String? mapName;
+
   const SVGMap({
     Key? key,
     required this.svgPath,
     required this.svgWidth,
     required this.svgHeight,
     this.mapID,
+    this.mapName,
     this.svgScale = 1,
   }) : super(key: key);
 
@@ -123,9 +127,9 @@ class _SVGMapState extends State<SVGMap> {
   String erroMessage = "ERRO INESPERADO";
   String erroDetalhe = "ERRO INESPERADO";
 
-  StreamController<String> _strcontroller = StreamController<String>();
+  StreamController<String> _streamcontroller = StreamController<String>();
   Future fetchMapPoints() async {
-    _strcontroller = StreamController<String>(
+    _streamcontroller = StreamController<String>(
       onPause: () => debugPrint('Paused'),
       onResume: () => debugPrint('Resumed'),
       onCancel: () => debugPrint('Cancelled'),
@@ -138,85 +142,104 @@ class _SVGMapState extends State<SVGMap> {
               .getMapPoints(widget.mapID ?? blocoCSuperiorId)
               .then(
                 (res) => {
-                  if (res is List)
+                  if (res is! List)
                     {
-                      if (res.isEmpty)
-                        {
-                          //TODO: tratar quando não houver pontos no mapa
-                          throw ("Não há pontos no mapa!"),
-                        },
+                      debugPrint(
+                          "ERRO na resposta de getMapPoint.\nO retorno deve ser uma lista de pontos\nTipo esperado: List, tipo recebido: " +
+                              res.runtimeType.toString()),
+                      erroMessage = "Erro no servidor.",
+                      erroDetalhe = "Tipo inesperado.",
+                      _streamcontroller.addError(erroMessage),
                     }
                   else
                     {
-                      // ignore: avoid_print
-                      print(
-                          "ERRO na resposta de getMapPoint.\nO retorno deve ser uma lista de pontos\nTipo esperado: List, tipo recebido: " +
-                              res.runtimeType.toString()),
-                      exit(1),
-                    },
-                  for (var ponto in res)
-                    {
-                      pontoRecebido = PointParent.fromJson(ponto),
-                      newPointList.add(pontoRecebido),
-                      if (pontoRecebido.children.isNotEmpty)
+                      if (res.isEmpty)
                         {
-                          for (PointChild filho in pontoRecebido.children)
+                          if (userModel.permission != "super")
                             {
-                              newPointList.add(filho),
+                              erroMessage = "Não há pontos no mapa.",
+                              erroDetalhe =
+                                  "Peça à um administrador para adicionar o ponto inicial do mapa.",
+                              _streamcontroller.addError(erroMessage),
                             }
+                          else
+                            {
+                              // Informar que deve inserir o ponto inicial
+                            },
                         }
+                      else
+                        {
+                          for (var ponto in res)
+                            {
+                              pontoRecebido = PointParent.fromJson(ponto),
+                              newPointList.add(pontoRecebido),
+                              if (pontoRecebido.children.isNotEmpty)
+                                {
+                                  for (PointChild filho
+                                      in pontoRecebido.children)
+                                    {
+                                      newPointList.add(filho),
+                                    }
+                                }
+                            },
+                          prefs.setString(
+                            "pontoAnterior",
+                            pointModelToJson(newPointList.first),
+                          ),
+                          SvgMapFlags.modoAdicao = "caminho",
+                          // O primeiro elemento da lista não pode ser um ponto filho
+                          pontoAnterior = newPointList.first as PointParent,
+                          centralizar(flagScale),
+                          _streamcontroller.sink.add("1"),
+                          _streamcontroller.close(),
+                        },
                     },
-                  prefs.setString(
-                    "pontoAnterior",
-                    pointModelToJson(newPointList.first),
-                  ),
-                  SvgMapFlags.modoAdicao = "caminho",
-                  pontoAnterior = newPointList.first
-                      as PointParent, // O primeiro elemento da lista não pode ser um ponto filho
-                  centralizar(flagScale),
                 },
               );
-          _strcontroller.sink.add("1");
-          _strcontroller.close();
         } on DioError catch (e) {
           if (kDebugMode) {
             print(e.response?.data);
           }
-          switch (e.response?.statusCode) {
-            case 400:
-              erroMessage = "[400] Credenciais incorretas";
-              erroDetalhe = "Verifique o login";
-              break;
-            case 401:
-              erroMessage = "[401] Não autorizado";
-              erroDetalhe = "O usuário não possui autorização";
-              break;
-            case 404:
-              erroMessage = "[404] Não encontrado";
-              erroDetalhe = e.response!.data["message"];
-              break;
-            default:
-              erroMessage = "Erro desconhecido (" +
-                  e.response!.statusCode.toString() +
-                  ") - contate o suporte";
-              if (e.response!.data is! String) {
-                erroDetalhe = e.response!.data["message"];
-              } else {
-                erroDetalhe = e.response!.data!;
-              }
-              break;
+          if (e.response != null) {
+            switch (e.response!.statusCode) {
+              case 400:
+                erroMessage = "[400] Bad Request";
+                erroDetalhe = "Verifique a requisição";
+                break;
+              case 401:
+                erroMessage = "[401] Não autorizado";
+                erroDetalhe = "O usuário não possui autorização";
+                break;
+              case 404:
+                erroMessage = "[404] Não encontrado";
+                erroDetalhe =
+                    e.response!.data["message"] ?? e.response!.statusMessage;
+                break;
+              default:
+                erroMessage = "Erro desconhecido (" +
+                    e.response!.statusCode.toString() +
+                    ") - contate o suporte";
+                if (e.response!.data is! String) {
+                  erroDetalhe = e.response!.data["message"];
+                } else {
+                  erroDetalhe = e.response!.data!;
+                }
+                break;
+            }
+          } else {
+            erroMessage = "Erro desconhecido";
+            erroDetalhe = "Não houve resposta do servidor";
           }
-          _strcontroller.addError(erroMessage);
-          // throw ("Erro de conexão");
+          _streamcontroller.addError(erroMessage);
         }
       },
     );
-    _strcontroller.add("1");
+    _streamcontroller.add("1");
   }
 
   @override
   void dispose() {
-    _strcontroller.close();
+    _streamcontroller.close();
     super.dispose();
   }
 
@@ -240,7 +263,7 @@ class _SVGMapState extends State<SVGMap> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<Object>(
-      stream: _strcontroller.stream,
+      stream: _streamcontroller.stream,
       builder: (context, snapshot) {
         Widget childVar;
         if (snapshot.hasError) {
@@ -251,7 +274,7 @@ class _SVGMapState extends State<SVGMap> {
                 child: Column(
                   children: [
                     const Text(
-                        "Ocorreu um erro ao se conectar com o servidor:"),
+                        "Ocorreu um erro ao se conectar com o servidor:\n"),
                     Text(
                       erroMessage,
                       style: const TextStyle(fontWeight: FontWeight.bold),
@@ -263,7 +286,7 @@ class _SVGMapState extends State<SVGMap> {
               actions: [
                 TextButton(
                     onPressed: () {
-                      print("Criar função para voltar para página anterior");
+                      Navigator.pushReplacementNamed(context, '/mapselection');
                     },
                     child: const Text("Voltar")),
                 TextButton(
@@ -317,18 +340,18 @@ class _SVGMapState extends State<SVGMap> {
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Icon(
+                    children: [
+                      const Icon(
                         Icons.home_work,
                         size: 30,
                         color: Colors.white,
                       ),
-                      SizedBox(
+                      const SizedBox(
                         width: 20,
                       ),
                       Text(
-                        "Entrada Reitoria",
-                        style: TextStyle(
+                        widget.mapName?? "Bloco C",
+                        style: const TextStyle(
                           fontSize: 18,
                           color: Colors.white,
                         ),
