@@ -5,14 +5,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dio/dio.dart';
 import 'package:mvp_proex/features/point/point_child.model.dart';
 import 'package:mvp_proex/features/point/point_parent.model.dart';
 import 'package:mvp_proex/features/svg_map/svg_map_flags.dart';
 import 'package:mvp_proex/features/widgets/dialog_view_point.dart';
 import 'package:mvp_proex/features/widgets/shared/snackbar.message.dart';
 import 'package:mvp_proex/features/widgets/painters.widget.dart';
-import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mvp_proex/features/user/user.model.dart';
 import 'package:mvp_proex/features/point/point.model.dart';
 import 'package:mvp_proex/features/point/point.widget.dart';
@@ -21,7 +22,6 @@ import 'package:mvp_proex/features/widgets/point_valid.widget.dart';
 import 'package:mvp_proex/features/widgets/custom_appbar.widget.dart';
 import 'package:mvp_proex/features/widgets/dialog_add_point.widget.dart';
 import 'package:mvp_proex/invoice_service.dart';
-import 'package:dio/dio.dart';
 
 class SVGMap extends StatefulWidget {
   /// Define o caminho do asset:
@@ -103,7 +103,6 @@ class _SVGMapState extends State<SVGMap> {
 
   // Mantido aqui apenas para saber de forma mais rápida, mas remover
   // TODO: remover quando não for mais necessário
-  final String reitoriaId = "7aae38c8-1ac5-4c52-bd5d-648a8625209d";
   final String blocoCSuperiorId = "c5e47fab-0a29-4d79-be62-ae3320629dbd";
   final String blocoCTerreoId = "eb562369-e529-45e5-a353-2e353e591add";
 
@@ -132,7 +131,47 @@ class _SVGMapState extends State<SVGMap> {
     _streamcontroller = StreamController<String>(
       onPause: () => debugPrint('Paused'),
       onResume: () => debugPrint('Resumed'),
-      onCancel: () => debugPrint('Cancelled'),
+      onCancel: () async {
+        debugPrint('Cancelled');
+        if (SvgMapFlags.modoAdicao == "inicial") {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text(
+                "Novo Mapa",
+                textAlign: TextAlign.center,
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: const [
+                    Text("Esse mapa não possui pontos"),
+                    Text(
+                        "Como você é um administrador, insira um ponto inicial para este mapa."),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      Navigator.pushReplacementNamed(context, '/mapselection');
+                    },
+                    child: const Text("Voltar")),
+                TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Text(
+                      "OK",
+                      style: TextStyle(color: Colors.green),
+                    )),
+              ],
+              actionsAlignment: MainAxisAlignment.center,
+            ),
+          );
+        }
+      },
       onListen: () async {
         SharedPreferences prefs;
         prefs = await SharedPreferences.getInstance();
@@ -164,7 +203,9 @@ class _SVGMapState extends State<SVGMap> {
                             }
                           else
                             {
-                              // Informar que deve inserir o ponto inicial
+                              SvgMapFlags.modoAdicao = "inicial",
+                              _streamcontroller.sink.add("1"),
+                              _streamcontroller.close(),
                             },
                         }
                       else
@@ -324,11 +365,13 @@ class _SVGMapState extends State<SVGMap> {
             ),
           );
         } else {
-          bool isValidX = pontoAnterior.x > ((x ?? 1) - 1) &&
-              pontoAnterior.x < ((x ?? 0) + 1);
+          bool isValidX = SvgMapFlags.modoAdicao == "inicial" ||
+              pontoAnterior.x > ((x ?? 1) - 1) &&
+                  pontoAnterior.x < ((x ?? 0) + 1);
 
-          bool isValidY = pontoAnterior.y > ((y ?? 1)) - 1 &&
-              pontoAnterior.y < ((y ?? 0) + 1);
+          bool isValidY = SvgMapFlags.modoAdicao == "inicial" ||
+              pontoAnterior.y > ((y ?? 1)) - 1 &&
+                  pontoAnterior.y < ((y ?? 0) + 1);
 
           bool isValid = isValidX || isValidY;
 
@@ -350,7 +393,7 @@ class _SVGMapState extends State<SVGMap> {
                         width: 20,
                       ),
                       Text(
-                        widget.mapName?? "Bloco C",
+                        widget.mapName ?? "Bloco C",
                         style: const TextStyle(
                           fontSize: 18,
                           color: Colors.white,
@@ -443,9 +486,13 @@ class _SVGMapState extends State<SVGMap> {
                                 SvgMapFlags.modoAdicao != "vizinho" &&
                                 ((isValid && SvgMapFlags.isLine) ||
                                     (SvgMapFlags.modoAdicao != "caminho"))) {
-                              dialogAddPoint(context, details).then((point) {
+                              dialogAddPoint(context, details, widget.mapID!).then((point) {
                                 if (point != null) {
                                   newPointList.add(point);
+                                  if (SvgMapFlags.modoAdicao == "inicial") {
+                                    pontoAnterior = point;
+                                    SvgMapFlags.modoAdicao = "caminho";
+                                  }
                                   for (var element in newPointList) {
                                     if (element.uuid == pontoAnterior.uuid &&
                                         element is PointParent) {

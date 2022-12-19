@@ -40,7 +40,7 @@ class PathPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, size) {
     Paint paintParent = Paint();
-    paintParent.color = Colors.blue;
+    paintParent.color = Colors.lightBlue;
     paintParent.strokeWidth = 2;
 
     Paint paintChild = Paint();

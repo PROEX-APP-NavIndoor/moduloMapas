@@ -110,12 +110,12 @@ class _MapselectionViewState extends State<MapselectionView> {
                           AppColors.primary.green ~/ 2,
                           AppColors.primary.blue ~/ 2),
                       items: listOfMaps
-                          .map((e) => DropdownMenuItem(
+                          .map((mapaIndividual) => DropdownMenuItem(
                                 child: Text(
-                                  e["name"] ?? "ERR",
+                                  mapaIndividual["name"] ?? "ERR",
                                   style: const TextStyle(color: Colors.white),
                                 ),
-                                value: e,
+                                value: mapaIndividual,
                               ))
                           .toList(),
                       value: listOfMaps[0],

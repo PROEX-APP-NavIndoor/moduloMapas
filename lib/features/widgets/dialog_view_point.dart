@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:mvp_proex/app/app.constant.dart';
 import 'package:mvp_proex/features/point/point.repository.dart';
 import 'package:mvp_proex/features/point/point_child.model.dart';
 import 'package:mvp_proex/features/point/point_parent.model.dart';
@@ -50,24 +51,27 @@ Future dialogViewPoint(
               // ao remover um ponto, tirar a referência à ele em qualquer ponto que tenha ele como vizinho, e remover os filhos, atualizar esses pontos no banco, e então remover esse ponto do banco
               PointRepository pRepository = PointRepository();
               try {
-                // se o ponto a ser removido é Parent, então ele tem vizinhos
                 if (point is PointParent) {
-                  // pra cada vizinho do ponto que desejo remover
+                  // se o ponto a ser removido é Parent, então ele tem vizinhos
+
                   for (Map<String, dynamic> vizinho in point.neighbor) {
-                    // busca na lista até achar o vizinho atual
+                    // pra cada vizinho do ponto que desejo remover
+
                     for (PointModel individualPoint in points) {
+                      // busca na lista até achar o vizinho atual
                       if (individualPoint is PointParent &&
                           individualPoint.uuid == vizinho["id"]) {
-                        // então remova a referência do meu ponto nele e atualiza o banco
-                        individualPoint.neighbor
-                            .removeWhere((item) => item["id"] == point.uuid);
+                        individualPoint.neighbor.removeWhere((item) =>
+                            item["id"] ==
+                            point
+                                .uuid); // então remova a referência do meu ponto nele e atualiza o banco
                         await pRepository.editPoint(individualPoint);
                         break;
                       }
                     }
                   }
-                  // pra cada filho que esse ponto tiver, apaga ele no banco
-                  for (PointChild individualPoint in point.children) {
+                  
+                  for (PointChild individualPoint in point.children) { // pra cada filho que esse ponto tiver, apaga ele no banco
                     await pRepository.deletePoint(
                         "child", individualPoint.uuid);
                   }

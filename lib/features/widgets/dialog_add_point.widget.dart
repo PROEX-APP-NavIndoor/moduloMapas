@@ -11,7 +11,7 @@ import 'package:mvp_proex/features/widgets/shared/snackbar.message.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mvp_proex/features/point/point.model.dart';
 
-Future dialogAddPoint(BuildContext context, var details) {
+Future dialogAddPoint(BuildContext context, var details, String mapId) {
   return showDialog(
     context: context,
     builder: (context) {
@@ -92,9 +92,9 @@ Future dialogAddPoint(BuildContext context, var details) {
         ),
         scrollable: true,
         actions: [
+          // CANCELAR
           TextButton(
             onPressed: () {
-              SvgMapFlags.modoAdicao = "caminho";
               Navigator.pop(context);
             },
             child: const Text(
@@ -107,10 +107,13 @@ Future dialogAddPoint(BuildContext context, var details) {
               onPressed: () async {
                 SharedPreferences prefs = await SharedPreferences.getInstance();
                 String directionAnterior = "";
+                PointParent pontoAnterior = PointParent();
 
-                //usando esse point model para que seja possível acessar os valores do ponto com o uuid desejado
-                PointParent pontoAnterior =
-                    pointParentFromJson(prefs.getString("pontoAnterior") ?? "");
+                if (SvgMapFlags.modoAdicao != "inicial") {
+                  //usando esse point model para que seja possível acessar os valores do ponto com o uuid desejado
+                  pontoAnterior = pointParentFromJson(
+                      prefs.getString("pontoAnterior") ?? "");
+                }
 
                 // inicialização é feita dentro do if else
                 // ignore: prefer_typing_uninitialized_variables
@@ -125,8 +128,7 @@ Future dialogAddPoint(BuildContext context, var details) {
                 point.y = details.localPosition.dy;
                 point.name = name;
                 point.description = descricao;
-                point.mapId =
-                    "c5e47fab-0a29-4d79-be62-ae3320629dbd"; // TODO: pegar o mapId do mapa atual
+                point.mapId = mapId;
                 if (point is PointParent) {
                   switch (tipo) {
                     case "passagem":
@@ -139,35 +141,37 @@ Future dialogAddPoint(BuildContext context, var details) {
                       point.type = TypePoint.common;
                       break;
                   }
-                  // verificar a orientação
-                  double difx = (point.x - pontoAnterior.x);
-                  double dify = (point.y - pontoAnterior.y);
-                  String direction;
-                  if (difx < 0) difx *= -1;
-                  if (dify < 0) dify *= -1;
-                  if (difx < 2) point.x = pontoAnterior.x;
-                  if (dify < 2) point.y = pontoAnterior.y;
+                  if (SvgMapFlags.modoAdicao != "inicial") {
+                    // verificar a orientação
+                    double difx = (point.x - pontoAnterior.x);
+                    double dify = (point.y - pontoAnterior.y);
+                    String direction;
+                    if (difx < 0) difx *= -1;
+                    if (dify < 0) dify *= -1;
+                    if (difx < 2) point.x = pontoAnterior.x;
+                    if (dify < 2) point.y = pontoAnterior.y;
 
-                  if (point.x == pontoAnterior.x) {
-                    if (pontoAnterior.y < point.y) {
-                      direction = "N";
-                      directionAnterior = "S";
+                    if (point.x == pontoAnterior.x) {
+                      if (pontoAnterior.y < point.y) {
+                        direction = "N";
+                        directionAnterior = "S";
+                      } else {
+                        direction = "S";
+                        directionAnterior = "N";
+                      }
                     } else {
-                      direction = "S";
-                      directionAnterior = "N";
+                      if (pontoAnterior.x < point.x) {
+                        direction = "W";
+                        directionAnterior = "E";
+                      } else {
+                        direction = "E";
+                        directionAnterior = "W";
+                      }
                     }
-                  } else {
-                    if (pontoAnterior.x < point.x) {
-                      direction = "W";
-                      directionAnterior = "E";
-                    } else {
-                      direction = "E";
-                      directionAnterior = "W";
-                    }
+                    point.neighbor.add(
+                      {"id": pontoAnterior.uuid, "direction": direction},
+                    );
                   }
-                  point.neighbor.add(
-                    {"id": pontoAnterior.uuid, "direction": direction},
-                  );
                 } else if (point is PointChild) {
                   switch (tipo) {
                     case "obstaculo":
@@ -193,14 +197,16 @@ Future dialogAddPoint(BuildContext context, var details) {
                       .then((value) async {
                     point.uuid = json.decode(value)["id"];
 
-                    if (SvgMapFlags.modoAdicao == "caminho") {
+                    if (SvgMapFlags.modoAdicao != "filho") {
                       prefs.setString(
                         "pontoAnterior",
                         pointModelToJson(point),
                       );
-                      pontoAnterior.neighbor.add(
-                          {"id": point.uuid, "direction": directionAnterior});
-                      await pRepository.editPoint(pontoAnterior);
+                      if (SvgMapFlags.modoAdicao == "caminho") {
+                        pontoAnterior.neighbor.add(
+                            {"id": point.uuid, "direction": directionAnterior});
+                        await pRepository.editPoint(pontoAnterior);
+                      }
                     } else if (SvgMapFlags.modoAdicao == "filho") {
                       pontoAnterior.children.add(point);
                     }
