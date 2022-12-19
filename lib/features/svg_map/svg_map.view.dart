@@ -101,11 +101,6 @@ class _SVGMapState extends State<SVGMap> {
 
   late final Widget svg;
 
-  // Mantido aqui apenas para saber de forma mais rápida, mas remover
-  // TODO: remover quando não for mais necessário
-  final String blocoCSuperiorId = "c5e47fab-0a29-4d79-be62-ae3320629dbd";
-  final String blocoCTerreoId = "eb562369-e529-45e5-a353-2e353e591add";
-
   late PointParent pontoAnterior;
   List<PointModel> newPointList = [];
 
@@ -178,7 +173,7 @@ class _SVGMapState extends State<SVGMap> {
         prefs.setString("token", userModel.token);
         try {
           await PointRepository()
-              .getMapPoints(widget.mapID ?? blocoCSuperiorId)
+              .getMapPoints(widget.mapID!)
               .then(
                 (res) => {
                   if (res is! List)

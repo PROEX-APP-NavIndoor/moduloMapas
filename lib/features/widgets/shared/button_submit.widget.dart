@@ -28,7 +28,7 @@ class _ButtonSubmitWidgetState extends State<ButtonSubmitWidget> {
       margin: const EdgeInsets.symmetric(vertical: 10),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          primary: widget.inversed ? Colors.white : AppColors.primary,
+          backgroundColor: widget.inversed ? Colors.white : AppColors.primary,
           shadowColor: AppColors.primary,
           elevation: 10,
           shape: RoundedRectangleBorder(

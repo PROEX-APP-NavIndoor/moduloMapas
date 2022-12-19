@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mvp_proex/app/app.constant.dart';
@@ -90,7 +91,9 @@ Future dialogEditar(
                 onPressed: () async {
                   point.name = name;
                   point.description = descricao;
-                  print(point.toJson());
+                  if (kDebugMode) {
+                    print(point.toJson());
+                  }
                   try {
                     await PointRepository().editPoint(point);
                     Navigator.pop(context);
